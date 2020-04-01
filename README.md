@@ -1,7 +1,7 @@
-#ProbRecoPackage
+# ProbRecoPackage
 
 A package for probabilistic forecast reconciliation based on score optimisation.
 
-Objective is to do optimisation via stochastic gradient methods.
+Objective is to do score optimisation via stochastic gradient methods.
 
-Currently just playing around (for a week) working out how to integrate the STAN math c++ headers with RCpp eigen and an R package.  This allows the gradients to be worked out by automatic differentiation.
+Currently there is just one function which works out the contribution to the energy score of a single draw (and a copy) drawn from the base probabilistic forecast distribution.  It also works out the contribution to the gradient (by AD).

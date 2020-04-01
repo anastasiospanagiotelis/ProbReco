@@ -6,9 +6,9 @@
 
 using namespace Rcpp;
 
-// test
-Rcpp::List test(Rcpp::NumericMatrix Sin, Rcpp::NumericVector yin, Rcpp::NumericVector xin, Rcpp::NumericVector xsin, Rcpp::NumericVector Gin);
-RcppExport SEXP _ProbReco_test(SEXP SinSEXP, SEXP yinSEXP, SEXP xinSEXP, SEXP xsinSEXP, SEXP GinSEXP) {
+// energy_i
+Rcpp::List energy_i(Rcpp::NumericMatrix Sin, Rcpp::NumericVector yin, Rcpp::NumericVector xin, Rcpp::NumericVector xsin, Rcpp::NumericVector Gin);
+RcppExport SEXP _ProbReco_energy_i(SEXP SinSEXP, SEXP yinSEXP, SEXP xinSEXP, SEXP xsinSEXP, SEXP GinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,13 +17,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type xin(xinSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type xsin(xsinSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type Gin(GinSEXP);
-    rcpp_result_gen = Rcpp::wrap(test(Sin, yin, xin, xsin, Gin));
+    rcpp_result_gen = Rcpp::wrap(energy_i(Sin, yin, xin, xsin, Gin));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ProbReco_test", (DL_FUNC) &_ProbReco_test, 5},
+    {"_ProbReco_energy_i", (DL_FUNC) &_ProbReco_energy_i, 5},
     {NULL, NULL, 0}
 };
 

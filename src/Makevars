@@ -7,7 +7,6 @@
 CXX_STD = CXX14
 
 
-CPPFLAGS= -Wno-ignored-attributes
 VER=
 CCACHE=ccache
 CC=$(CCACHE) gcc$(VER)

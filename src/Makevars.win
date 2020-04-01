@@ -6,7 +6,6 @@
 ## enable compilation with C++11 (or even C++14) where available
 CXX_STD = CXX14
 
-CPPFLAGS= -Wno-ignored-attributes
 VER=
 CCACHE=ccache
 CC=$(CCACHE) gcc$(VER)

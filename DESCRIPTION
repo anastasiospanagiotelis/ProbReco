@@ -7,5 +7,8 @@ Author: Anastasios Panagiotelis
 Maintainer: Who to complain to <anastasios.panagiotelis@monash.edu>
 Description: Finds a linear reconciliation matrix by optimising with respect to a proper scoring rule.  More description to come as features are added.
 License: GPL-3
+Depends: R (>= 3.0.2)
 Imports: Rcpp (>= 1.0.2), RcppEigen (>= 0.3.3.5.0)
 LinkingTo: Rcpp, RcppEigen, StanHeaders (>= 2.19.1), BH
+RoxygenNote: 6.1.1.9000
+Encoding: UTF-8

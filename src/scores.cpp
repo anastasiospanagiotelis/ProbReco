@@ -30,7 +30,12 @@ struct ip {
     int m = S_.cols();
     Matrix<T, Dynamic, Dynamic> G = to_matrix(Gvec , m , n);
     Matrix<T, Dynamic, Dynamic> SG = stan::math::multiply(S_,G);
-    return (y_.transpose() * SG * y_);
+    Matrix<T, Dynamic, 1> xr = stan::math::multiply(SG,x_);
+    Matrix<T, Dynamic, 1> dif1 = xr - stan::math::multiply(SG,xs_);
+    Matrix<T, Dynamic, 1> dif2 = (y_-xr);
+    T term1 = dif1.transpose() * dif1;
+    T term2 = dif2.transpose() * dif2;
+    return ((0.5 * sqrt(term1) ) - sqrt(term2));
   }
 };
 

@@ -52,9 +52,10 @@ energy_score<-function(S,Gvec,data,prob,Q=500){
 #' @param beta1 Forgetting rate for mean
 #' @param beta2 Forgetting rate for variance
 #' @param maxIter Maximum number of Iterations
-#' @param tol
-#' @example 
-#' #' library(purrr)
+#' @param tol Tolerance for stopping criterion
+#' @examples
+#'  
+#' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #' data<-map(1:100,function(i){S%*%rnorm(2)})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})

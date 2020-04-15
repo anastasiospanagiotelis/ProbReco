@@ -53,6 +53,8 @@ energy_score<-function(S,Gvec,data,prob,Q=500){
 #' @param beta2 Forgetting rate for variance
 #' @param maxIter Maximum number of Iterations
 #' @param tol Tolerance for stopping criterion
+#' @param epsilon small constant added to denominator of step size
+#' @param Ginit Initial value of G
 #' @examples
 #'  
 #' library(purrr)
@@ -61,7 +63,17 @@ energy_score<-function(S,Gvec,data,prob,Q=500){
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 #' opt_G(S,data,prob)
 
-opt_G<-function(S,data,prob,Q=500,eta=0.1,beta1=0.9,beta2=0.999,maxIter=500,tol=0.01){
+opt_G<-function(S,
+                data,
+                prob,
+                Q = 500,
+                eta = 0.1,
+                beta1 = 0.9,
+                beta2 = 0.999,
+                maxIter = 500,
+                tol = rep(0.1,ncol(S)),
+                epsilon = 1e-8,
+                Ginit = as.vector(solve(t(S)%*%S,t(S)))){
   #Initialise 
   m<-0 #mean 
   v<-0 #variance
@@ -69,16 +81,13 @@ opt_G<-function(S,data,prob,Q=500,eta=0.1,beta1=0.9,beta2=0.999,maxIter=500,tol=
   dif<-1E15 #stopping criterion
   
   #Initialise G at least squares reconciliation
-  Gvec<-as.vector(solve(t(S)%*%S,t(S)))
+  Gvec<-Ginit
   oldval<-energy_score(S = S,Gvec = Gvec,data = data, prob = prob,Q)$value
   
-  
-  while((i<=maxIter)&&(dif>tol)){
+  while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
     gval<-energy_score(S = S,Gvec = Gvec,data = data, prob = prob,Q)
-    
     g<-gval$grad
-    
     val<-gval$value
     
     #Update moving averaged
@@ -89,24 +98,27 @@ opt_G<-function(S,data,prob,Q=500,eta=0.1,beta1=0.9,beta2=0.999,maxIter=500,tol=
     m_bc<-m/(1-beta1^i)
     v_bc<-v/(1-beta2^i)
     
+    #Update
+    Gvec<-Gvec+(eta*m_bc)/(sqrt(v_bc)+epsilon)
+
+    dif<-abs(m_bc/(sqrt(v_bc)+epsilon))
     
-    Gvec<-Gvec+(eta*m_bc)/(sqrt(v_bc)+1e-8)
-    
-    #Stopping criterion
-    
-    pastval<-rep(0,5)
-    imod5<-i%%5
-    
-    if(imod5 != 0){
-      pastval[imod5] <- val
-    }else{
-      pastval[5]<-val
-      newval=mean(pastval)
-      dif<-abs(newval-oldval)
-      oldval<-newval
-    }
+    #Increment for loop
     i<-i+1
   
+    #For debugging
+    # print('i')
+    # print(i)
+    # print('g')
+    # print(g)
+    # print('Gvec')
+    # print(Gvec)
+    # print('val')
+    # print(val)
+    # print('dif')
+    # print(dif)
+
+    
   }
   
   return(Gvec)

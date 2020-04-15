@@ -5,7 +5,8 @@
 \title{Find optimal G using Stochastic Gradient Ascent}
 \usage{
 opt_G(S, data, prob, Q = 500, eta = 0.1, beta1 = 0.9,
-  beta2 = 0.999, maxIter = 500, tol = 0.01)
+  beta2 = 0.999, maxIter = 500, tol = rep(0.1, ncol(S)),
+  epsilon = 1e-08, Ginit = as.vector(solve(t(S) \%*\% S, t(S))))
 }
 \arguments{
 \item{S}{Matrix encoding linear constraints.}
@@ -25,6 +26,10 @@ opt_G(S, data, prob, Q = 500, eta = 0.1, beta1 = 0.9,
 \item{maxIter}{Maximum number of Iterations}
 
 \item{tol}{Tolerance for stopping criterion}
+
+\item{epsilon}{small constant added to denominator of step size}
+
+\item{Ginit}{Initial value of G}
 }
 \description{
 Find optimal G using Stochastic Gradient Ascent

@@ -1,11 +1,11 @@
 Package: ProbReco
 Type: Package
-Title: Score Optimal Probabilistic Forecast Reconciliation.
+Title: Score Optimal Probabilistic Forecast Reconciliation
 Version: 0.1
 Date: 2020-03-09
 Author: Anastasios Panagiotelis
 Maintainer: <anastasios.panagiotelis@monash.edu>
-Description: Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients
+Description: Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients. 
 License: GPL-3
 Depends: R (>= 3.0.2)
 Imports: Rcpp (>= 1.0.2), RcppEigen (>= 0.3.3.5.0), purrr(>= 0.3.2)

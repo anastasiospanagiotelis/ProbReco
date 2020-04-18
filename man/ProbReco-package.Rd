@@ -4,9 +4,9 @@
 \name{ProbReco-package}
 \alias{ProbReco}
 \alias{ProbReco-package}
-\title{ProbReco: Score Optimal Probabilistic Forecast Reconciliation.}
+\title{ProbReco: Score Optimal Probabilistic Forecast Reconciliation}
 \description{
-Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients
+Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients.
 }
 \details{
 This package carries out probabilistic forecast reconciliation via score 

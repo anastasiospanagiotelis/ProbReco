@@ -22,6 +22,8 @@
 #' energy_score(data,prob,S,Gvec)
 
 energy_score<-function(data,prob,S,Gvec,Q=500){
+
+  
   #Draws from probabilistic forecast
   x<-replicate(n = Q,purrr::invoke_map(prob))
   attr(x,'dim')<-NULL
@@ -135,6 +137,39 @@ scoreopt<-function(data,
                 S,
                 Ginit = as.vector(solve(t(S)%*%S,t(S))),
                 control=list()){
+  
+  #Checks on lengths of data and prob match
+  if (length(data)!=length(prob)){
+    stop('data and prob must be lists with the same length')
+  }
+  
+  #Check prob is composed of functions
+  if (any(lapply(prob,class)!='function')){
+      stop('elements of prob must be functions')
+  }
+  
+  #Check S is correct
+  nS<-nrow(S)
+  mS<-ncol(S)
+  if (nS<=mS||!is.matrix(S)||!is.numeric(S)){
+    stop('S must be a numeric matrix with more rows than columns')
+  }
+  
+  #Check data is correct
+  if(any(lapply(data,length)!=nS)||!all(unlist(lapply(data,is.numeric)))){
+    stop('Elements of data must be numeric vectors with length equal to the number of rows of S')
+  }
+  
+  #Check output of prob is correct
+  if(any(lapply(invoke_map(prob),length)!=nS)||!all(unlist(lapply(invoke_map(prob),is.numeric)))){
+    stop('Functions in prob must produce numeric vectors with length equal to number of rows in S')
+  }
+  
+  #Check initial value of G
+  if(length(Ginit)!=nS*mS||!is.numeric(Ginit)||!is.vector(Ginit)){
+    stop('Initial value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*ncol(S)')
+  }
+  
   #Initialise 
   m<-0 #mean 
   v<-0 #variance

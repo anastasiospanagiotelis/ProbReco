@@ -1,11 +1,11 @@
 #' Find estimate of total energy score and its gradient for a reconciled forecast
 #' @export
 #' 
-#' @param prob Functions to simulate from probabilistic forecast (in a list).
 #' @param data Data realisations as vector in a list.
+#' @param prob Functions to simulate from probabilistic forecast (in a list).
 #' @param S Matrix encoding linear constraints.
 #' @param Gvec G Matrix for reconciliation vectorised.
-#' @param Q number of draws for each time period
+#' @param Q number of draws for each time period.
 #' @return Contribution to energy score and gradient w.r.t G.
 #' @examples
 
@@ -16,7 +16,7 @@
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 #' energy_score(S,Gvec,data,prob)
 
-energy_score<-function(S,Gvec,data,prob,Q=500){
+energy_score<-function(data,prob,S,Gvec,Q=500){
   #Draws from probabilistic forecast
   x<-replicate(n = Q,purrr::invoke_map(prob))
   attr(x,'dim')<-NULL
@@ -42,19 +42,63 @@ energy_score<-function(S,Gvec,data,prob,Q=500){
   return(list(grad=grad,value=value))
 }
 
-#' Find optimal G using Stochastic Gradient Ascent
+#' Find control parameters for SGA and check values are valid
+#' 
 #' @export
-#' @param prob Functions to simulate from probabilistic forecast (in a list).
-#' @param data Data realisations as vector in a list.
-#' @param S Matrix encoding linear constraints.
-#' @param Q number of draws for each time period
-#' @param eta Step size
+#' @param alpha Learning rate
 #' @param beta1 Forgetting rate for mean
 #' @param beta2 Forgetting rate for variance
 #' @param maxIter Maximum number of Iterations
 #' @param tol Tolerance for stopping criterion
 #' @param epsilon small constant added to denominator of step size
-#' @param Ginit Initial value of G
+
+sga.control<-function(Q = 500,
+                      alpha = 0.1,
+                      beta1 = 0.9,
+                      beta2 = 0.999,
+                      maxIter = 500,
+                      tol = 0.1,
+                      epsilon = 1e-8){ 
+  
+  #Check if all numeric
+  if(any(lapply(l,is.numeric)==FALSE)){
+    
+  }
+  
+  #Check parameter values are valid
+  if (Q <= 0 || as.integer(Q)!=Q) 
+    stop("number of draws to estimate energy score (Q) must be a positive integer.")
+  if (alpha<=0) 
+    stop("Learning rate (alpha) must be greater than 0.")
+  if (beta1<=0 || beta1>=1) 
+    stop("Forgetting rate of mean (beta1) should be between 0 and 1.")
+  if (beta2<=0 || beta2>=1) 
+    stop("Forgetting rate of variance (beta2) should be between 0 and 1.")
+  if (maxIter <= 0 || as.integer(maxIter)!=maxIter) 
+    stop("Maximum number of iterations must be > 0 and a positive integer.")
+    if (tol<=0|tol>=1e8) 
+    stop("Tolerance must be greater than 0 and should be small.")
+  if (epsilon <= 0) 
+    stop("value of 'epsilon' must be > 0")
+  
+  
+  return(list(Q=Q,
+              alpha=alpha,
+              beta1=beta1,
+              beta2=beta2,
+              maxIter=maxIter,
+              tol=tol,
+              epsilon=epsilon))
+  }
+
+
+#' Find optimal G using Stochastic Gradient Ascent
+#' @export
+#' @param prob Functions to simulate from probabilistic forecast (in a list).
+#' @param data Data realisations as vector in a list.
+#' @param S Matrix encoding linear constraints.
+#' @param control Tuning parameter for SGA.
+#' @param Ginit Initial value of G.
 #' @examples
 #'  
 #' library(purrr)
@@ -63,26 +107,35 @@ energy_score<-function(S,Gvec,data,prob,Q=500){
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 #' opt_G(S,data,prob)
 
-opt_G<-function(S,
-                data,
+opt_G<-function(data,
                 prob,
-                Q = 500,
-                eta = 0.1,
-                beta1 = 0.9,
-                beta2 = 0.999,
-                maxIter = 500,
-                tol = rep(0.1,ncol(S)),
-                epsilon = 1e-8,
-                Ginit = as.vector(solve(t(S)%*%S,t(S)))){
+                S,
+                Ginit = as.vector(solve(t(S)%*%S,t(S))),
+                control=list()){
   #Initialise 
   m<-0 #mean 
   v<-0 #variance
   i<-1 #iteration 
   dif<-1E15 #stopping criterion
   
+  #Controls
+  control <- do.call("sga.control", control)
+  
+  #Replace with list2env later
+  Q<-control$Q
+  alpha<-control$alpha 
+  beta1<-control$beta1
+  beta2<-control$beta2
+  maxIter<-control$maxIter
+  tol<-control$tol 
+  epsilon<-control$epsilon
+  
+  
   #Initialise G at least squares reconciliation
   Gvec<-Ginit
   oldval<-energy_score(S = S,Gvec = Gvec,data = data, prob = prob,Q)$value
+  
+  
   
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
@@ -99,7 +152,7 @@ opt_G<-function(S,
     v_bc<-v/(1-beta2^i)
     
     #Update
-    Gvec<-Gvec+(eta*m_bc)/(sqrt(v_bc)+epsilon)
+    Gvec<-Gvec+(alpha*m_bc)/(sqrt(v_bc)+epsilon)
 
     dif<-abs(m_bc/(sqrt(v_bc)+epsilon))
     

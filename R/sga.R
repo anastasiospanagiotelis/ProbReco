@@ -8,8 +8,8 @@
 #' @param Gvec G Matrix for reconciliation vectorised.
 #' @param Q Number of draws for each time period used to estimate energy score. Default is 500.
 #' @return Total energy score and gradient w.r.t G.
-#' \item{grad} The estimate of the gradient.
-#' \item{value} The estimated total energy score.
+#' \item{grad}{The estimate of the gradient.}
+#' \item{value}{The estimated total energy score.}
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
@@ -57,7 +57,7 @@ energy_score<-function(data,prob,S,Gvec,Q=500){
 #' @param epsilon small constant added to denominator of step size. Default is 1e-8
 #' @examples 
 #' #Change Maximum Iterations to 1000
-#' scoreopt.control(MaxIter=1000)
+#' scoreopt.control(maxIter=1000)
 
 scoreopt.control<-function(Q = 500,
                       alpha = 0.1,
@@ -67,10 +67,6 @@ scoreopt.control<-function(Q = 500,
                       tol = 0.1,
                       epsilon = 1e-8){ 
   
-  #Check if all numeric
-  if(any(lapply(l,is.numeric)==FALSE)){
-    
-  }
   
   #Check parameter values are valid
   if (Q <= 0 || as.integer(Q)!=Q) 
@@ -89,13 +85,21 @@ scoreopt.control<-function(Q = 500,
     stop("value of 'epsilon' must be > 0")
   
   
-  return(list(Q=Q,
-              alpha=alpha,
-              beta1=beta1,
-              beta2=beta2,
-              maxIter=maxIter,
-              tol=tol,
-              epsilon=epsilon))
+  #Collect in list
+  l<-list(Q=Q,
+          alpha=alpha,
+          beta1=beta1,
+          beta2=beta2,
+          maxIter=maxIter,
+          tol=tol,
+          epsilon=epsilon)
+  
+  #Check if all numeric
+  if(any(lapply(l,is.numeric)==FALSE)){
+    "All tuning parameters must by numeric."
+  }
+  
+  return(l)
   }
 
 
@@ -113,7 +117,7 @@ scoreopt.control<-function(Q = 500,
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #' data<-map(1:100,function(i){S%*%rnorm(2)})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-#' opt_G(data,prob,S)
+#' scoreopt(data,prob,S)
 
 scoreopt<-function(data,
                 prob,

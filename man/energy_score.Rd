@@ -4,21 +4,23 @@
 \alias{energy_score}
 \title{Find estimate of total energy score and its gradient for a reconciled forecast}
 \usage{
-energy_score(S, Gvec, data, prob, Q = 500)
+energy_score(data, prob, S, Gvec, Q = 500)
 }
 \arguments{
+\item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
+
+\item{prob}{Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.}
+
 \item{S}{Matrix encoding linear constraints.}
 
 \item{Gvec}{G Matrix for reconciliation vectorised.}
 
-\item{data}{Data realisations as vector in a list.}
-
-\item{prob}{Functions to simulate from probabilistic forecast (in a list).}
-
-\item{Q}{number of draws for each time period}
+\item{Q}{Number of draws for each time period used to estimate energy score. Default is 500.}
 }
 \value{
-Contribution to energy score and gradient w.r.t G.
+Total energy score and gradient w.r.t G.
+\item{grad}{The estimate of the gradient.}
+\item{value}{The estimated total energy score.}
 }
 \description{
 Find estimate of total energy score and its gradient for a reconciled forecast
@@ -29,5 +31,10 @@ S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 Gvec<-as.matrix(runif(6))
 data<-map(1:100,function(i){S\%*\%rnorm(2)})
 prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-energy_score(S,Gvec,data,prob)
+energy_score(data,prob,S,Gvec)
 }
+\seealso{
+Other sga: \code{\link{scoreopt.control}},
+  \code{\link{scoreopt}}
+}
+\concept{sga}

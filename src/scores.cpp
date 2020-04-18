@@ -39,22 +39,15 @@ struct ip {
   }
 };
 
-//' Computes energy score contribution with unconstrained G
-//' 
-//' @param Sin Matrix encoding linear constraints
-//' @param yin Vector valued realisation
-//' @param xin Vector valued realisation from base predictive
-//' @param xsin Copy of vector valued realisation from base predictive
-//' @param Gin Reconciliation matrix (vectorised)
-//' @return Contribution to energy score and gradient w.r.t G
-//' @examples
-//' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-//' Gvec<-as.matrix(runif(6))
-//' y<-as.matrix(S%*%runif(2))
-//' x<-as.matrix(runif(3))
-//' xs<-as.matrix(runif(3))
-//' energy_i(S,y,x,xs,Gvec)
-// [[Rcpp::export]]
+// Computes energy score contribution with unconstrained G
+// 
+// Sin Matrix encoding linear constraints
+// yin Vector valued realisation
+// xin Vector valued realisation from base predictive
+// xsin Copy of vector valued realisation from base predictive
+// Gin Reconciliation matrix (vectorised)
+// Contribution to energy score and gradient w.r.t G
+// [[Rcpp::export(name=".energy_i")]]
 Rcpp::List energy_i(Rcpp::NumericMatrix Sin, 
                 Rcpp::NumericVector yin,
                 Rcpp::NumericVector xin, 

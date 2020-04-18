@@ -33,7 +33,7 @@ energy_score<-function(data,prob,S,Gvec,Q=500){
   
   #Find energy score contributions
   all<-purrr::pmap(list(xin=x,xsin=xs,yin=y),
-                   energy_i,Sin=S,Gin=Gvec)
+                   .energy_i,Sin=S,Gin=Gvec)
   
   #Transpose list
   allt<-purrr::transpose(all)

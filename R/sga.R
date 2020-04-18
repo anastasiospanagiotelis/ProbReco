@@ -1,7 +1,10 @@
-#' Find estimate of total energy score and its gradient for a reconciled forecast
+#' @title Total energy score (and gradient) for reconciled forecast
+#' 
+#' @description Function to find an estimate of the total energy score for a linearly reconciled 
+#' probabilistic forecast.  Also funds the gradient by automatic differentiation.
 #' 
 #' @export
-#' @family sga
+#' @family ProbReco functions
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
@@ -44,10 +47,13 @@ energy_score<-function(data,prob,S,Gvec,Q=500){
   return(list(grad=grad,value=value))
 }
 
-#' Find control parameters for SGA and check values are valid
+#' @title Tuning parameters for score optimisation by Stochastic Gradient Ascent
+#'
+#' @description Function to set tuning parameters for stochastic gradient ascent used to
+#' find a reconciliation matrix that optimised a scoring function.
 #' 
 #' @export
-#' @family sga
+#' @family ProbReco functions
 #' @param Q Number of draws for each time period used to estimate energy score. Default is 500.
 #' @param alpha Learning rate. Deafult is 0.1
 #' @param beta1 Forgetting rate for mean. Default is 0.9.
@@ -103,14 +109,19 @@ scoreopt.control<-function(Q = 500,
   }
 
 
-#' Find optimal G using Stochastic Gradient Ascent
+#' @title Score optimisation by Stochastic Gradient Ascent
+#'
+#' @description Function find a reconciliation matrix that optimises score 
+#' using training data.  Stochastic gradient ascent is used for optimisation
+#' with gradients found using automatic differentiation.
+#' 
 #' @export
-#' @family sga
+#' @family ProbReco functions
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
 #' @param Ginit Initial value of G.  Default is least squares reconcilaiton
-#' @param control Tuning parameter for SGA. See [scoreopt.control] for more details
+#' @param control Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @return An optimised value of G as a vector.
 #' @examples
 #' library(purrr)

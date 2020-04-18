@@ -2,7 +2,7 @@
 % Please edit documentation in R/sga.R
 \name{scoreopt.control}
 \alias{scoreopt.control}
-\title{Find control parameters for SGA and check values are valid}
+\title{Tuning parameters for score optimisation by Stochastic Gradient Ascent}
 \usage{
 scoreopt.control(Q = 500, alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
   maxIter = 500, tol = 0.1, epsilon = 1e-08)
@@ -23,14 +23,15 @@ scoreopt.control(Q = 500, alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
 \item{epsilon}{small constant added to denominator of step size. Default is 1e-8}
 }
 \description{
-Find control parameters for SGA and check values are valid
+Function to set tuning parameters for stochastic gradient ascent used to
+find a reconciliation matrix that optimised a scoring function.
 }
 \examples{
 #Change Maximum Iterations to 1000
 scoreopt.control(maxIter=1000)
 }
 \seealso{
-Other sga: \code{\link{energy_score}},
+Other ProbReco functions: \code{\link{energy_score}},
   \code{\link{scoreopt}}
 }
-\concept{sga}
+\concept{ProbReco functions}

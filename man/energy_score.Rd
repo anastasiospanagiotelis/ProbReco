@@ -2,7 +2,7 @@
 % Please edit documentation in R/sga.R
 \name{energy_score}
 \alias{energy_score}
-\title{Find estimate of total energy score and its gradient for a reconciled forecast}
+\title{Total energy score (and gradient) for reconciled forecast}
 \usage{
 energy_score(data, prob, S, Gvec, Q = 500)
 }
@@ -23,7 +23,8 @@ Total energy score and gradient w.r.t G.
 \item{value}{The estimated total energy score.}
 }
 \description{
-Find estimate of total energy score and its gradient for a reconciled forecast
+Function to find an estimate of the total energy score for a linearly reconciled 
+probabilistic forecast.  Also funds the gradient by automatic differentiation.
 }
 \examples{
 library(purrr)
@@ -34,7 +35,7 @@ prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 energy_score(data,prob,S,Gvec)
 }
 \seealso{
-Other sga: \code{\link{scoreopt.control}},
+Other ProbReco functions: \code{\link{scoreopt.control}},
   \code{\link{scoreopt}}
 }
-\concept{sga}
+\concept{ProbReco functions}

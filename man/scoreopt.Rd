@@ -2,7 +2,7 @@
 % Please edit documentation in R/sga.R
 \name{scoreopt}
 \alias{scoreopt}
-\title{Find optimal G using Stochastic Gradient Ascent}
+\title{Score optimisation by Stochastic Gradient Ascent}
 \usage{
 scoreopt(data, prob, S, Ginit = as.vector(solve(t(S) \%*\% S, t(S))),
   control = list())
@@ -16,13 +16,15 @@ scoreopt(data, prob, S, Ginit = as.vector(solve(t(S) \%*\% S, t(S))),
 
 \item{Ginit}{Initial value of G.  Default is least squares reconcilaiton}
 
-\item{control}{Tuning parameter for SGA. See [scoreopt.control] for more details}
+\item{control}{Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 }
 \value{
 An optimised value of G as a vector.
 }
 \description{
-Find optimal G using Stochastic Gradient Ascent
+Function find a reconciliation matrix that optimises score 
+using training data.  Stochastic gradient ascent is used for optimisation
+with gradients found using automatic differentiation.
 }
 \examples{
 library(purrr)
@@ -32,7 +34,7 @@ prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 scoreopt(data,prob,S)
 }
 \seealso{
-Other sga: \code{\link{energy_score}},
+Other ProbReco functions: \code{\link{energy_score}},
   \code{\link{scoreopt.control}}
 }
-\concept{sga}
+\concept{ProbReco functions}

@@ -4,7 +4,7 @@
 \alias{scoreopt}
 \title{Score optimisation by Stochastic Gradient Ascent}
 \usage{
-scoreopt(data, prob, S, Ginit = c(rep(0, nrow(S)), as.vector(solve(t(S)
+scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list())
 }
 \arguments{
@@ -14,13 +14,13 @@ scoreopt(data, prob, S, Ginit = c(rep(0, nrow(S)), as.vector(solve(t(S)
 
 \item{S}{Matrix encoding linear constraints.}
 
-\item{Ginit}{Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elemnts are filled in column-major order.}
+\item{Ginit}{Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
 
-\item{control}{Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
+\item{control}{Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 }
 \value{
 Optimised reconciliation parameters.
-\item{d}{Translation vector for reconciliation (d).}
+\item{d}{Translation vector for reconciliation (\eqn{d=Sa}).}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total energy score.}
 }
@@ -32,7 +32,7 @@ with gradients found using automatic differentiation.
 \examples{
 library(purrr)
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-data<-map(1:100,function(i){rep(5,3)+S\%*\%rnorm(2)})
+data<-map(1:100,function(i){S\%*\%(c(2,2)+rnorm(2))})
 prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 out<-scoreopt(data,prob,S)
 }

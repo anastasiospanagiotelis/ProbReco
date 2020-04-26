@@ -29,8 +29,8 @@ probabilistic forecast.  Also funds the gradient by automatic differentiation.
 \examples{
 library(purrr)
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-Gvec<-as.matrix(runif(9))
-data<-map(1:100,function(i){rep(5,3)+S\%*\%rnorm(2)})
+Gvec<-as.matrix(runif(8))
+data<-map(1:100,function(i){S\%*\%(c(2,2)+rnorm(2))})
 prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 out<-energy_score(data,prob,S,Gvec)
 }

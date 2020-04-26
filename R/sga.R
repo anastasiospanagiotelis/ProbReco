@@ -16,8 +16,8 @@
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' Gvec<-as.matrix(runif(9))
-#' data<-map(1:100,function(i){rep(5,3)+S%*%rnorm(2)})
+#' Gvec<-as.matrix(runif(8))
+#' data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 #' out<-energy_score(data,prob,S,Gvec)
 
@@ -122,16 +122,16 @@ scoreopt.control<-function(Q = 500,
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
-#' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elemnts are filled in column-major order.
-#' @param control Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @return Optimised reconciliation parameters.
-#' \item{d}{Translation vector for reconciliation (d).}
+#' \item{d}{Translation vector for reconciliation (\eqn{d=Sa}).}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total energy score.}
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' data<-map(1:100,function(i){rep(5,3)+S%*%rnorm(2)})
+#' data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
 #' out<-scoreopt(data,prob,S)
 
@@ -139,7 +139,7 @@ scoreopt.control<-function(Q = 500,
 scoreopt<-function(data,
                 prob,
                 S,
-                Ginit = c(rep(0,nrow(S)),as.vector(solve(t(S)%*%S,t(S)))),
+                Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list()){
   
   #Checks on lengths of data and prob match
@@ -170,7 +170,7 @@ scoreopt<-function(data,
   }
   
   #Check initial value of G
-  if(length(Ginit)!=nS*(mS+1)||!is.numeric(Ginit)||!is.vector(Ginit)){
+  if(length(Ginit)!=mS*(nS+1)||!is.numeric(Ginit)||!is.vector(Ginit)){
     stop('Initial value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*(ncol(S)+1)')
   }
   
@@ -228,8 +228,8 @@ scoreopt<-function(data,
     
   }
   
-  d<-Gvec[1:nS]
-  G<-matrix(Gvec[(nS+1):(nS*(mS+1))],mS,nS)
+  d<-S%*%Gvec[1:mS]
+  G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS)
   return(list(d=d,G=G,val=val))
   
 }

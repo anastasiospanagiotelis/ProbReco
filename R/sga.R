@@ -16,10 +16,10 @@
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' Gvec<-as.matrix(runif(6))
-#' data<-map(1:100,function(i){S%*%rnorm(2)})
+#' Gvec<-as.matrix(runif(9))
+#' data<-map(1:100,function(i){rep(5,3)+S%*%rnorm(2)})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-#' energy_score(data,prob,S,Gvec)
+#' out<-energy_score(data,prob,S,Gvec)
 
 energy_score<-function(data,prob,S,Gvec,Q=500){
 
@@ -122,20 +122,21 @@ scoreopt.control<-function(Q = 500,
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
-#' @param Ginit Initial value of G.  Default is least squares reconcilaiton
+#' @param Ginit Initial value of G.  Default is least squares reconciliaton
 #' @param control Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @return An optimised value of G as a vector.
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' data<-map(1:100,function(i){S%*%rnorm(2)})
+#' data<-map(1:100,function(i){rep(5,3)+S%*%rnorm(2)})
 #' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-#' scoreopt(data,prob,S)
+#' out<-scoreopt(data,prob,S)
+
 
 scoreopt<-function(data,
                 prob,
                 S,
-                Ginit = as.vector(solve(t(S)%*%S,t(S))),
+                Ginit = c(rep(0,nrow(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list()){
   
   #Checks on lengths of data and prob match
@@ -166,8 +167,8 @@ scoreopt<-function(data,
   }
   
   #Check initial value of G
-  if(length(Ginit)!=nS*mS||!is.numeric(Ginit)||!is.vector(Ginit)){
-    stop('Initial value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*ncol(S)')
+  if(length(Ginit)!=nS*(mS+1)||!is.numeric(Ginit)||!is.vector(Ginit)){
+    stop('Initial value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*(ncol(S)+1)')
   }
   
   #Initialise 
@@ -224,6 +225,8 @@ scoreopt<-function(data,
     
   }
   
-  return(Gvec)
+  d<-Gvec[1:nS]
+  G<-matrix(Gvec[(nS+1):(nS*(mS+1))],mS,nS)
+  return(list(d=d,G=G,val=val))
   
 }

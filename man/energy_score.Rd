@@ -13,7 +13,7 @@ energy_score(data, prob, S, Gvec, Q = 500)
 
 \item{S}{Matrix encoding linear constraints.}
 
-\item{Gvec}{G Matrix for reconciliation vectorised.}
+\item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
 
 \item{Q}{Number of draws for each time period used to estimate energy score. Default is 500.}
 }
@@ -29,10 +29,10 @@ probabilistic forecast.  Also funds the gradient by automatic differentiation.
 \examples{
 library(purrr)
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-Gvec<-as.matrix(runif(6))
-data<-map(1:100,function(i){S\%*\%rnorm(2)})
+Gvec<-as.matrix(runif(9))
+data<-map(1:100,function(i){rep(5,3)+S\%*\%rnorm(2)})
 prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-energy_score(data,prob,S,Gvec)
+out<-energy_score(data,prob,S,Gvec)
 }
 \seealso{
 Other ProbReco functions: \code{\link{scoreopt.control}},

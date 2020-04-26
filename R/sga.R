@@ -8,7 +8,7 @@
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
-#' @param Gvec G Matrix for reconciliation vectorised.
+#' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 #' @param Q Number of draws for each time period used to estimate energy score. Default is 500.
 #' @return Total energy score and gradient w.r.t G.
 #' \item{grad}{The estimate of the gradient.}
@@ -122,9 +122,12 @@ scoreopt.control<-function(Q = 500,
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
-#' @param Ginit Initial value of G.  Default is least squares reconciliaton
+#' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elemnts are filled in column-major order.
 #' @param control Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
-#' @return An optimised value of G as a vector.
+#' @return Optimised reconciliation parameters.
+#' \item{d}{Translation vector for reconciliation (d).}
+#' \item{G}{Reconciliation matrix (G).}
+#' \item{val}{The estimated optimal total energy score.}
 #' @examples
 #' library(purrr)
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)

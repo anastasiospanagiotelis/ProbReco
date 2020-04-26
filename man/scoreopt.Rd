@@ -4,8 +4,8 @@
 \alias{scoreopt}
 \title{Score optimisation by Stochastic Gradient Ascent}
 \usage{
-scoreopt(data, prob, S, Ginit = as.vector(solve(t(S) \%*\% S, t(S))),
-  control = list())
+scoreopt(data, prob, S, Ginit = c(rep(0, nrow(S)), as.vector(solve(t(S)
+  \%*\% S, t(S)))), control = list())
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -14,12 +14,15 @@ scoreopt(data, prob, S, Ginit = as.vector(solve(t(S) \%*\% S, t(S))),
 
 \item{S}{Matrix encoding linear constraints.}
 
-\item{Ginit}{Initial value of G.  Default is least squares reconcilaiton}
+\item{Ginit}{Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elemnts are filled in column-major order.}
 
 \item{control}{Tuning parameter for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 }
 \value{
-An optimised value of G as a vector.
+Optimised reconciliation parameters.
+\item{d}{Translation vector for reconciliation (d).}
+\item{G}{Reconciliation matrix (G).}
+\item{val}{The estimated optimal total energy score.}
 }
 \description{
 Function find a reconciliation matrix that optimises score 
@@ -29,9 +32,9 @@ with gradients found using automatic differentiation.
 \examples{
 library(purrr)
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-data<-map(1:100,function(i){S\%*\%rnorm(2)})
+data<-map(1:100,function(i){rep(5,3)+S\%*\%rnorm(2)})
 prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
-scoreopt(data,prob,S)
+out<-scoreopt(data,prob,S)
 }
 \seealso{
 Other ProbReco functions: \code{\link{energy_score}},

@@ -16,4 +16,147 @@ knitr::opts_chunk$set(
 )
 ```
 
-The ProbReco package carries out probabilistic forecast reconciliation via energy score optimisation.
+## Background
+
+The `ProbReco` package carries out probabilistic forecast reconciliation via energy score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Ascent.
+
+### Probabilistic Forecast Reconciliation
+
+Let $\boldsymbol{y}_t$ be a $n$-vector observed at time $t$ that is known to belong to an $m$-dimensional subspace of $\mathbb{R}^n$ denoted $\mathfrak{s}$ with $m<n$.  Suppose that a *base* probabilistic forecast for $\boldsymbol{y}_{t+h}$ at time $t$ is defined as 
+
+$$\hat{\nu}_{t+h|t}(\mathcal{A})=\textit{Pr}(\boldsymbol{y}_t\in\mathcal{A})\,,$$
+
+where $\mathcal{A}$ is some region of $\mathbb{R}^n$ (more precisely a member of the usual Borel $\sigma$-algebra on $\mathbb{R}^n$).  A *reconciled* probabilistic forecast is a probability measure $\tilde{\nu}_{t+h|t}$ with the property
+
+$$\tilde{\nu}_{t+h|t}(\psi(\mathcal{A}))=\hat{\nu}_{t+h|t}(\mathcal{A})\,,$$
+
+where $\psi:\mathbb{R}^n\rightarrow\mathfrak{s}$ is a mapping and $\psi{\mathcal{A}}$ is the image of $\mathcal{A}$ under $\psi$.  In this package we consider linear transformations for $\psi$
+
+$$
+\tilde{\boldsymbol{y}}_{t+h|t}=\psi(\hat{\boldsymbol{y}}_{t+h|t})=\boldsymbol{S}(\boldsymbol{G}\hat{\boldsymbol{y}}_{t+h|t}+\boldsymbol{a})\,,
+$$
+where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}$.  If $\hat{\boldsymbol{y}}_{t+h|t}$ is sampled from the base forecast then $\tilde{\boldsymbol{y}}_{t+h|t}$ will be sampled from the reconciled forecast.  The objective of probabilistic forecast reconciliation is to find values of $\boldsymbol{G}$ and $\boldsymbol{a}$ that are optimal.
+
+### Energy Score
+
+Scoring rules are used to measure the quality of probabilistic forecasts.  The loss function used in this package is the total energy score given by
+
+$$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
+
+where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy score given by
+
+$$\hat{K}_{t+h}=\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|-\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}+\boldsymbol{a}\right)\right|\right|\,,$$
+
+where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a positively oriented energy score, i.e. larger values of the score indicate more accurate forecasts.
+
+### Optimisation
+
+A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Ascent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library.  The learning rates for each update are determined using the ADAM method.
+
+## Setting up function inputs
+
+This section describes how to set up the inputs for the main functions in the `ProbReco` package.  These are easily created by the `purrr` package which can be loaded (together with the `ProbReco` package) using:
+
+```{r loadpkgs}
+library(purrr)
+library(ProbReco)
+```
+
+### The `data` argument
+
+The loss function involves evaluation of a scoring rule over a training sample.  The `data` argument is a list where each list element is an $n$-vector corresponding to a realisation of the data.  Each element of the list corresponds to a training observation. Consider a 3-variable hierarchy where $y_{1,t}=y_{2,t}+y_{3,t}$.  An $\boldsymbol{S}$ matrix for this hierarchy is
+
+$$\boldsymbol{S}=\begin{pmatrix}1&1\\1&0\\0&1\end{pmatrix}$$
+
+which we define in R by
+
+```{r}
+S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
+S
+```
+
+Also, suppose
+
+$$\begin{pmatrix}y_{2,t}\\y_{3,t}\end{pmatrix}\sim N\left(\begin{pmatrix}2\\2\end{pmatrix},\begin{pmatrix}1&0\\0&1\end{pmatrix}\right)\,,$$
+
+for all $t$ then 100 realisations from the full hierarchy can be generated in R using
+
+```{r}
+data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
+data[[1]]
+data[[50]]
+```
+
+This form of storing data is unconvential but facilitated the use of `purrr` style functions that are used internally in the package.  
+
+### The `prob` argument
+
+The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probablistic distribution.
+
+Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation.  Such an object can be created uses the `map` function in the following (fairly convoluted) way.
+
+```{r}
+prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+prob[[1]]
+prob[[50]]
+prob[[1]]()
+prob[[1]]()
+prob[[50]]()
+```
+
+### The `Gvec` and `Ginit` argument
+
+The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{a}$.  The remaining elements are the elements of $\boldsymbol{G}$ vecorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
+
+```{r}
+Gvec<-as.matrix(runif(8))
+Gvec
+```
+
+## The `energy_score` and `scoreopt` functions
+
+The function `energy_score` provides an estimate of the total energy score and its gradient.  The gradient is evaluated by algorithmic differentiation.
+
+```{r}
+out<-energy_score(data,prob,S,Gvec)
+out$value
+out$grad
+```
+
+Since the loss function is stochastic, these values will change each time the function is run.
+
+```{r}
+out2<-energy_score(data,prob,S,Gvec)
+out$value
+out2$value
+out$grad
+out2$grad
+```
+
+The function `scoreopt` maximises the loss function using stochastic gradient ascent.
+
+```{r}
+out<-scoreopt(data,prob,S)
+```
+
+The output includes $\boldsymbol{d}=\boldsymbol{S}\boldsymbol{a}$ and $\boldsymbol{G}$ which is converted back to a matrix using column-major ordering.  The converged value of the loss function is also provided.
+
+```{r}
+out$d
+out$G
+out$val
+```
+
+Since everything is Gaussian, and the mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{d}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
+```{r}
+out$d
+```
+is close to the true mean of $(4,2,2)'$.  The variance covaraiance matrix is
+
+```{r}
+S%*%out$G%*%t(out$G)%*%t(S)
+```
+ which is close to the true variance covariance matrix
+ 
+$$\begin{pmatrix}2&1&1\\1&1&0\\1&0&1\end{pmatrix}$$
+

@@ -1,0 +1,19 @@
+---
+title: "Probabilistic Forecast Reconciliation via energy score optimisation."
+author: "Anastasios Panagiotelis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ProbReco}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The ProbReco package carries out probabilistic forecast reconciliation via energy score optimisation.

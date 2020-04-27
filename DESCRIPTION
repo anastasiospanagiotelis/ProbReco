@@ -9,9 +9,9 @@ Description: Training of reconciliation weights for probabilistic forecasts to o
 License: GPL-3
 Depends: R (>= 3.0.2)
 Imports: Rcpp (>= 1.0.2), RcppEigen (>= 0.3.3.5.0), purrr(>= 0.3.2)
-Suggests: knitr
+Suggests: knitr, rmarkdown
 LinkingTo: Rcpp, RcppEigen, StanHeaders (>= 2.19.1), BH
 RoxygenNote: 6.1.1.9000
 LazyData: true
-VignetteBuilder: knitr, rmarkdown
+VignetteBuilder: knitr
 Encoding: UTF-8

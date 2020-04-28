@@ -1,10 +1,9 @@
 Package: ProbReco
 Type: Package
 Title: Score Optimal Probabilistic Forecast Reconciliation
-Version: 0.1
-Date: 2020-03-09
+Version: 0.1.0.9000
 Author: Anastasios Panagiotelis
-Maintainer: <anastasios.panagiotelis@monash.edu>
+Maintainer: Anastasios Panagiotelis <anastasios.panagiotelis@monash.edu>
 Description: Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients. 
 License: GPL-3
 URL: https://github.com/anastasiospanagiotelis/ProbReco

@@ -1,4 +1,5 @@
-# ProbRecoPackage
+# ProbReco <a href='https://https://github.com/anastasiospanagiotelis/ProbReco'><img src='hex/ProbReco.png' align="right" height="138.5" /></a>
+
 
 <!-- badges: start -->
   [![R build status](https://github.com/anastasiospanagiotelis/ProbReco/workflows/R-CMD-check/badge.svg)](https://github.com/anastasiospanagiotelis/ProbReco/actions)

@@ -1,0 +1,19 @@
+---
+title: "Using ProbReco with the fable package"
+author: "Anastasios Panagiotelis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ProbReco-with-fable}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette will eventually contain data on using ProbReco with fable

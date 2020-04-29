@@ -77,14 +77,14 @@ S
 
 Also, suppose
 
-$$\begin{pmatrix}y_{2,t}\\y_{3,t}\end{pmatrix}\sim N\left(\begin{pmatrix}2\\2\end{pmatrix},\begin{pmatrix}1&0\\0&1\end{pmatrix}\right)\,,$$
+$$\begin{pmatrix}y_{2,t}\\y_{3,t}\end{pmatrix}\sim N\left(\begin{pmatrix}1\\1\end{pmatrix},\begin{pmatrix}1&0\\0&1\end{pmatrix}\right)\,,$$
 
-for all $t$ then 100 realisations from the full hierarchy can be generated in R using
+for all $t$ then 10 realisations from the full hierarchy can be generated in R using
 
 ```{r}
-data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
+data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
 data[[1]]
-data[[50]]
+data[[5]]
 ```
 
 This form of storing data is unconvential but facilitated the use of `purrr` style functions that are used internally in the package.  
@@ -96,12 +96,12 @@ The base probabilistic forecast in general will vary for each period of the trai
 Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation.  Such an object can be created uses the `map` function in the following (fairly convoluted) way.
 
 ```{r}
-prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
 prob[[1]]
-prob[[50]]
+prob[[5]]
 prob[[1]]()
 prob[[1]]()
-prob[[50]]()
+prob[[5]]()
 ```
 
 ### The `Gvec` and `Ginit` argument
@@ -139,17 +139,17 @@ The function `scoreopt` maximises the loss function using stochastic gradient as
 out<-scoreopt(data,prob,S)
 ```
 
-The output includes $\boldsymbol{d}=\boldsymbol{S}\boldsymbol{a}$ and $\boldsymbol{G}$ which is converted back to a matrix using column-major ordering.  The converged value of the loss function is also provided.
+The output includes $\boldsymbol{a}$ and $\boldsymbol{G}$ which is converted back to a matrix using column-major ordering.  The converged value of the loss function is also provided.
 
 ```{r}
-out$d
+out$a
 out$G
 out$val
 ```
 
-Since everything is Gaussian, and the mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{d}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
+Since everything is Gaussian, and the mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{S}\boldsymbol{a}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
 ```{r}
-out$d
+S%*%out$a
 ```
 is close to the true mean of $(4,2,2)'$.  The variance covaraiance matrix is
 

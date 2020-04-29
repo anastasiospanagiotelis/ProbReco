@@ -17,4 +17,12 @@ the Adaptive Moments (Adam) variant of Stochastic Gradient Ascent.  Tuning param
 for this optimisation can be set using \code{\link[ProbReco]{scoreopt.control}}.  The gradients are found 
 using the automatic differentiation libraries of the Stan project.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/anastasiospanagiotelis/ProbReco}
+  \item Report bugs at \url{https://github.com/anastasiospanagiotelis/ProbReco/issues}
+}
+
+}
 \keyword{internal}

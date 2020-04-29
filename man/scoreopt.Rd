@@ -20,7 +20,7 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 }
 \value{
 Optimised reconciliation parameters.
-\item{d}{Translation vector for reconciliation (\eqn{d=Sa}).}
+\item{a}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total energy score.}
 }
@@ -30,10 +30,15 @@ using training data.  Stochastic gradient ascent is used for optimisation
 with gradients found using automatic differentiation.
 }
 \examples{
+#Use purr library to setup
 library(purrr)
+#Define S matrix
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-data<-map(1:100,function(i){S\%*\%(c(2,2)+rnorm(2))})
-prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+#Set data (only 10 training observations used for speed)
+data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
+#Set list of functions generating from probabilistic forecast
+prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#Find weights by SGA (will take a few seconds)
 out<-scoreopt(data,prob,S)
 }
 \seealso{

@@ -27,11 +27,17 @@ Function to find an estimate of the total energy score for a linearly reconciled
 probabilistic forecast.  Also funds the gradient by automatic differentiation.
 }
 \examples{
+#Use purr library to setup
 library(purrr)
+#Define S matrix
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
+#Randomly set a value of reconciliation parameters 
 Gvec<-as.matrix(runif(8))
-data<-map(1:100,function(i){S\%*\%(c(2,2)+rnorm(2))})
-prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+#Set data (only 10 training observations used for speed)
+data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
+#Set list of functions generating from probabilistic forecast
+prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#Compute energy_score
 out<-energy_score(data,prob,S,Gvec)
 }
 \seealso{

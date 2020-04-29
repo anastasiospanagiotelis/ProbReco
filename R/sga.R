@@ -14,11 +14,17 @@
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total energy score.}
 #' @examples
+#' #Use purr library to setup
 #' library(purrr)
+#' #Define S matrix
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
+#' #Randomly set a value of reconciliation parameters 
 #' Gvec<-as.matrix(runif(8))
-#' data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
-#' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+#' #Set data (only 10 training observations used for speed)
+#' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
+#' #Set list of functions generating from probabilistic forecast
+#' prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#' #Compute energy_score
 #' out<-energy_score(data,prob,S,Gvec)
 
 energy_score<-function(data,prob,S,Gvec,Q=500){
@@ -125,14 +131,19 @@ scoreopt.control<-function(Q = 500,
 #' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 #' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @return Optimised reconciliation parameters.
-#' \item{d}{Translation vector for reconciliation (\eqn{d=Sa}).}
+#' \item{a}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total energy score.}
 #' @examples
+#' #Use purr library to setup
 #' library(purrr)
+#' #Define S matrix
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' data<-map(1:100,function(i){S%*%(c(2,2)+rnorm(2))})
-#' prob<-map(1:100,function(i){f<-function(){rnorm(3)}})
+#' #Set data (only 10 training observations used for speed)
+#' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
+#' #Set list of functions generating from probabilistic forecast
+#' prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#' #Find weights by SGA (will take a few seconds)
 #' out<-scoreopt(data,prob,S)
 
 
@@ -228,8 +239,8 @@ scoreopt<-function(data,
     
   }
   
-  d<-S%*%Gvec[1:mS]
+  a<-Gvec[1:mS]
   G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS)
-  return(list(d=d,G=G,val=val))
+  return(list(a=a,G=G,val=val))
   
 }

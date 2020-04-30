@@ -16,4 +16,140 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette will eventually contain data on using ProbReco with fable
+The `ProbReco` package assumes that base probabilistic forecasts are available.  This vignette describes how these can be obtained using the `fable` package.  Note that the `fable` package does currently allow for probabilistic forecast reconciliation, but only under Gaussianity and not using score optimisation.  These algorithms may be integrated into future releases of `fable`.
+
+## The data
+
+The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level.  
+
+```{r}
+library(tidyverse)
+library(fable)
+library(slider)
+library(ProbReco)
+sim_hierarchy
+```
+
+## Set up rolling window
+
+To set up first we should break the data into a series of rolling windows.  This can be done using the `slide` function in the `slider` package.
+
+```{r}
+#Size of window
+N<-500 
+
+#Make data windows
+data_windows<-slide(sim_hierarchy,
+                    ~.x,
+                    .after=N-1,
+                    .complete = T)
+```
+
+This creates a list, the first element of which is the data from $t=1$ to $t=500$, the second element is the data from $t=2$ to $t=501$, etc...
+
+```{r}
+data_windows[[1]]%>%head(3)
+data_windows[[1]]%>%tail(3)
+data_windows[[2]]%>%head(3)
+data_windows[[2]]%>%tail(3)
+data_windows[[500]]%>%head(3)
+data_windows[[500]]%>%tail(3)
+```
+
+
+## Modelling
+
+A function for modelling using data from a single window is written.  This can be used with the map family of functions from the `purrr` package.  This function is given as
+
+```{r}
+
+model_window <- function(data_w){
+  data_w%>%
+    pivot_longer(cols = -Time,
+               names_to = 'var',
+               values_to = 'value')%>%
+    as_tsibble(index = 'Time',key='var')%>%
+    model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))->m
+    #model(arma11=ETS(value))->m
+  return(m)
+}
+```
+
+Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  This returns a `mable` object.  Here an ARMA(1,1) is be fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.
+
+To fit the model for each window, the map function can be used.  Here we will only fit models to the first 100 windows meaning that $t=501$ to $t=600$ will constitute the training data for learning the reconciliation weights.
+
+```{r}
+#Number of windows for training
+W<-10
+all_models<-map(data_windows[1:W],model_window)
+```
+
+## Setting up arguments for reconciliation
+
+### The S matrix
+
+The hierarchy has the follow $\boldsymbol{S}$ matrix
+
+```{r}
+S<-matrix(c(1,1,1,1,
+            1,1,0,0,
+            0,0,1,1,
+            1,0,0,0,
+            0,1,0,0,
+            0,0,1,0,
+            0,0,0,1),7,4,byrow = T)
+```
+
+### The realisations
+
+The following code obtains the realisations in the form required.
+
+```{r}
+
+obs_i<-function(i){
+  sim_hierarchy%>%
+  filter(Time==i)%>%
+  pivot_longer(-Time,names_to = 'var')%>%
+  arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
+  pull(value)
+}
+
+all_y<-map((N+1):(N+W),obs_i)
+
+```
+
+This list of length 100 has the vector of true realisations from $t=501$ as the first element, the vector of true realisations from $t=502$ as the second element, etc.  Note that the `arrange` and `match` functions are used to preserve the ordering of the variables from top to bottom. Although any ordering is acceptable, the order must agree with the ordering of the rows in the $\boldsymbol{S}$ matrix.
+
+### The list of probabilistic forecast distributions
+
+The next step is to create a list of functions where the first element generates from the probabilistic forecast distribution at time $t=501$, the second element generates from the probabilistic forecast distribution at time $t=502$, etc.  To do this write a function that returns a function as follows
+
+```{r}
+
+make_genfunc<-function(mab){
+  f<-function(){
+    generate(mab,times=1,h=1)%>%
+      arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
+      pull(.sim)
+  }
+  return(f)
+}
+```
+
+The 'inner' function `f` takes a `mable` object, generates a single one-step ahead forecast from the probabilistic distribution.  These are then rearranged in the an order that corresponds with the other arguments. The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
+
+```{r}
+all_prob<-map(all_models,make_genfunc)
+```
+
+The object `all_prob` is in the form required.
+
+## Finding the reconciliation weights
+
+The energy score for bottom up can be found using
+
+```{r}
+  G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
+  #energy_score(all_y,all_prob,S,G_bu)
+```

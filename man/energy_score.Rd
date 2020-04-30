@@ -9,7 +9,7 @@ energy_score(data, prob, S, Gvec)
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
 
-\item{prob}{Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.}
+\item{prob}{List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.}
 
 \item{S}{Matrix encoding linear constraints.}
 

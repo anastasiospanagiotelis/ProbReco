@@ -1,3 +1,4 @@
+
 #' @title Total energy score (and gradient) for reconciled forecast
 #' 
 #' @description Function to find an estimate of the total energy score for a linearly reconciled 
@@ -6,7 +7,7 @@
 #' @export
 #' @family ProbReco functions
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
-#' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
+#' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 #' @return Total energy score and gradient w.r.t G.
@@ -104,43 +105,16 @@ scoreopt.control<-function(alpha = 0.1,
   return(l)
   }
 
-
-#' @title Score optimisation by Stochastic Gradient Ascent
+#' @title Check inputs to function.
 #'
-#' @description Function find a reconciliation matrix that optimises score 
-#' using training data.  Stochastic gradient ascent is used for optimisation
-#' with gradients found using automatic differentiation.
-#' 
-#' @export
-#' @family ProbReco functions
+#' @description This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{energy_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
+#'  
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
-#' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
+#' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
-#' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
-#' @return Optimised reconciliation parameters.
-#' \item{a}{Translation vector for reconciliation.}
-#' \item{G}{Reconciliation matrix (G).}
-#' \item{val}{The estimated optimal total energy score.}
-#' @examples
-#' #Use purr library to setup
-#' library(purrr)
-#' #Define S matrix
-#' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#' #Set data (only 10 training observations used for speed)
-#' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
-#' #Set list of functions generating from probabilistic forecast
-#' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
-#' #Find weights by SGA (will take a few seconds)
-#' out<-scoreopt(data,prob,S)
+#' @param G Values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 
-
-scoreopt<-function(data,
-                prob,
-                S,
-                Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
-                control=list()){
-  
+checkinputs<-function(data,prob,S,G){
   #Checks on lengths of data and prob match
   if (length(data)!=length(prob)){
     stop('data and prob must be lists with the same length')
@@ -148,7 +122,7 @@ scoreopt<-function(data,
   
   #Check prob is composed of functions
   if (any(lapply(prob,class)!='function')){
-      stop('elements of prob must be functions')
+    stop('elements of prob must be functions')
   }
   
   #Check S is correct
@@ -164,14 +138,59 @@ scoreopt<-function(data,
   }
   
   #Check output of prob is correct
-  if(any(lapply(invoke_map(prob),nrow)!=nS)||!all(unlist(lapply(invoke_map(prob),is.numeric)))){
+  if(!all(unlist(lapply(invoke_map(prob),is.matrix)))||!all(unlist(lapply(invoke_map(prob),is.numeric)))){
+    stop('Functions in prob must produce numeric matrices')
+  }
+  if(any(lapply(invoke_map(prob),nrow)!=nS)){
     stop('Functions in prob must produce numeric matrices with a number of rows equal to number of rows in S')
   }
   
   #Check initial value of G
-  if(length(Ginit)!=mS*(nS+1)||!is.numeric(Ginit)||!is.vector(Ginit)){
-    stop('Initial value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*(ncol(S)+1)')
+  if(length(G)!=mS*(nS+1)||!is.numeric(G)||!is.vector(G)){
+    stop('Value of G must be a numeric vector (not a matrix) and have length equal to nrow(S)*(ncol(S)+1)')
   }
+  
+}
+
+#' @title Score optimisation by Stochastic Gradient Ascent
+#'
+#' @description Function find a reconciliation matrix that optimises score 
+#' using training data.  Stochastic gradient ascent is used for optimisation
+#' with gradients found using automatic differentiation.
+#' 
+#' @export
+#' @family ProbReco functions
+#' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
+#' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
+#' @param S Matrix encoding linear constraints.
+#' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
+#' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @return Optimised reconciliation parameters.
+#' \item{a}{Translation vector for reconciliation.}
+#' \item{G}{Reconciliation matrix (G).}
+#' \item{val}{The estimated optimal total energy score.}
+#' @examples
+#' #Use purr library to setup
+#' library(purrr)
+#' #Define S matrix
+#' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
+#' #Set data (only 10 training observations used for speed)
+#' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
+#' #Set list of functions to generate 50 iterates from probabilistic forecast
+#' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
+#' #Find weights by SGA (will take a few seconds)
+#' out<-scoreopt(data,prob,S)
+
+
+scoreopt<-function(data,
+                prob,
+                S,
+                Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
+                control=list()){
+  
+  nS<-nrow(S)
+  mS<-ncol(S)
+  checkinputs(data,prob,S,Ginit)  
   
   #Initialise 
   m<-0 #mean 

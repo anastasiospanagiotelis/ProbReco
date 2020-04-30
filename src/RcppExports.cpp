@@ -7,15 +7,15 @@
 using namespace Rcpp;
 
 // energy_i
-Rcpp::List energy_i(Rcpp::NumericMatrix Sin, Rcpp::NumericVector yin, Rcpp::NumericVector xin, Rcpp::NumericVector xsin, Rcpp::NumericVector Gin);
+Rcpp::List energy_i(Rcpp::NumericMatrix Sin, Rcpp::NumericVector yin, Rcpp::NumericMatrix xin, Rcpp::NumericMatrix xsin, Rcpp::NumericVector Gin);
 RcppExport SEXP _ProbReco_energy_i(SEXP SinSEXP, SEXP yinSEXP, SEXP xinSEXP, SEXP xsinSEXP, SEXP GinSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Sin(SinSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type yin(yinSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type xin(xinSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type xsin(xsinSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type xin(xinSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type xsin(xsinSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type Gin(GinSEXP);
     rcpp_result_gen = Rcpp::wrap(energy_i(Sin, yin, xin, xsin, Gin));
     return rcpp_result_gen;

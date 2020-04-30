@@ -51,10 +51,10 @@ struct ip {
     for (int j=0; j<Q; j++){
       dif1 = xr.col(j) - xrs.col(j);
       dif2 = (yd-xr.col(j));
-      ip1 = dif1.transpose() * dif1;
-      ip2 = dif2.transpose() * dif2;
-      term1 += sqrt(ip1);
-      term2 += sqrt(ip2);
+      ip1 = dif1.norm();
+      ip2 = dif2.norm();
+      term1 += ip1;
+      term2 += ip2;
     }
     
     

@@ -93,15 +93,14 @@ This form of storing data is unconvential but facilitated the use of `purrr` sty
 
 The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
-Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation.  Such an object can be created uses the `map` function in the following (fairly convoluted) way.
+Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stored these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these function can be created uses the `map` function.
 
 ```{r}
-prob<-map(1:10,function(i){f<-function(){matrix(rnorm(50*3),3,50)}})
+#Function
+f<-function(){matrix(rnorm(50*3),3,50)}
+prob<-map(1:10,function(i){f})
 prob[[1]]
 prob[[5]]
-prob[[1]]()
-prob[[1]]()
-prob[[5]]()
 ```
 
 ### The `Gvec` and `Ginit` argument
@@ -109,7 +108,7 @@ prob[[5]]()
 The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{a}$.  The remaining elements are the elements of $\boldsymbol{G}$ vecorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
 
 ```{r}
-Gvec<-as.matrix(runif(8))
+Gvec<-runif(8)
 Gvec
 ```
 
@@ -160,3 +159,4 @@ S%*%out$G%*%t(out$G)%*%t(S)
  
 $$\begin{pmatrix}2&1&1\\1&1&0\\1&0&1\end{pmatrix}$$
 
+These values will be even closer if more training observations are used and more iterates are drawn from the probabilistic forecasts to estimate the score.

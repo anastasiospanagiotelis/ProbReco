@@ -91,12 +91,12 @@ This form of storing data is unconvential but facilitated the use of `purrr` sty
 
 ### The `prob` argument
 
-The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probablistic distribution.
+The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
 Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation.  Such an object can be created uses the `map` function in the following (fairly convoluted) way.
 
 ```{r}
-prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+prob<-map(1:10,function(i){f<-function(){matrix(rnorm(50*3),3,50)}})
 prob[[1]]
 prob[[5]]
 prob[[1]]()

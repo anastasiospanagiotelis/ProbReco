@@ -23,7 +23,9 @@ The `ProbReco` package assumes that base probabilistic forecasts are available. 
 The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level.  
 
 ```{r}
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(purrr)
 library(fable)
 library(slider)
 library(ProbReco)

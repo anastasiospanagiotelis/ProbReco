@@ -9,7 +9,6 @@
 #' @param prob Functions to simulate from probabilistic forecast in a list.  Each list element corresponds to a period of training data.
 #' @param S Matrix encoding linear constraints.
 #' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @param Q Number of draws for each time period used to estimate energy score. Default is 500.
 #' @return Total energy score and gradient w.r.t G.
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total energy score.}
@@ -23,35 +22,29 @@
 #' #Set data (only 10 training observations used for speed)
 #' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
 #' #Set list of functions generating from probabilistic forecast
-#' prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 #' #Compute energy_score
 #' out<-energy_score(data,prob,S,Gvec)
 
-energy_score<-function(data,prob,S,Gvec,Q=500){
+energy_score<-function(data,prob,S,Gvec){
 
   
   #Draws from probabilistic forecast
-  x<-replicate(n = Q,purrr::invoke_map(prob))
-  attr(x,'dim')<-NULL
-  
+  x<-invoke_map(prob)
+
   #Copy from probabilistic forecast
-  xs<-replicate(n = Q,purrr::invoke_map(prob))
-  attr(xs,'dim')<-NULL
-  
-  #Construct y
-  y<-replicate(Q,data)
-  attr(y,'dim')<-NULL
-  
+  xs<-invoke_map(prob)
+
   #Find energy score contributions
-  all<-purrr::pmap(list(xin=x,xsin=xs,yin=y),
+  all<-purrr::pmap(list(xin=x,xsin=xs,yin=data),
                    .energy_i,Sin=S,Gin=Gvec)
   
   #Transpose list
   allt<-purrr::transpose(all)
   
   #Sum contributions to get value and gradient
-  value<-Reduce(`+`,allt$val)/Q
-  grad<-Reduce(`+`,allt$grad)/Q
+  value<-Reduce(`+`,allt$val)
+  grad<-Reduce(`+`,allt$grad)
   return(list(grad=grad,value=value))
 }
 
@@ -62,7 +55,6 @@ energy_score<-function(data,prob,S,Gvec,Q=500){
 #' 
 #' @export
 #' @family ProbReco functions
-#' @param Q Number of draws for each time period used to estimate energy score. Default is 500.
 #' @param alpha Learning rate. Deafult is 0.1
 #' @param beta1 Forgetting rate for mean. Default is 0.9.
 #' @param beta2 Forgetting rate for variance. Default is 0.999.
@@ -73,8 +65,7 @@ energy_score<-function(data,prob,S,Gvec,Q=500){
 #' #Change Maximum Iterations to 1000
 #' scoreopt.control(maxIter=1000)
 
-scoreopt.control<-function(Q = 500,
-                      alpha = 0.1,
+scoreopt.control<-function(alpha = 0.1,
                       beta1 = 0.9,
                       beta2 = 0.999,
                       maxIter = 500,
@@ -83,8 +74,6 @@ scoreopt.control<-function(Q = 500,
   
   
   #Check parameter values are valid
-  if (Q <= 0 || as.integer(Q)!=Q) 
-    stop("number of draws to estimate energy score (Q) must be a positive integer.")
   if (alpha<=0) 
     stop("Learning rate (alpha) must be greater than 0.")
   if (beta1<=0 || beta1>=1) 
@@ -100,8 +89,7 @@ scoreopt.control<-function(Q = 500,
   
   
   #Collect in list
-  l<-list(Q=Q,
-          alpha=alpha,
+  l<-list(alpha=alpha,
           beta1=beta1,
           beta2=beta2,
           maxIter=maxIter,
@@ -142,7 +130,7 @@ scoreopt.control<-function(Q = 500,
 #' #Set data (only 10 training observations used for speed)
 #' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
 #' #Set list of functions generating from probabilistic forecast
-#' prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+#' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 #' #Find weights by SGA (will take a few seconds)
 #' out<-scoreopt(data,prob,S)
 
@@ -176,8 +164,8 @@ scoreopt<-function(data,
   }
   
   #Check output of prob is correct
-  if(any(lapply(invoke_map(prob),length)!=nS)||!all(unlist(lapply(invoke_map(prob),is.numeric)))){
-    stop('Functions in prob must produce numeric vectors with length equal to number of rows in S')
+  if(any(lapply(invoke_map(prob),nrow)!=nS)||!all(unlist(lapply(invoke_map(prob),is.numeric)))){
+    stop('Functions in prob must produce numeric matrices with a number of rows equal to number of rows in S')
   }
   
   #Check initial value of G
@@ -198,13 +186,13 @@ scoreopt<-function(data,
   
   #Initialise G at least squares reconciliation
   Gvec<-Ginit
-  oldval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec,Q)$value
+  #oldval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec)$value
   
   
   
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
-    gval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec,Q)
+    gval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec)
     g<-gval$grad
     val<-gval$value
     

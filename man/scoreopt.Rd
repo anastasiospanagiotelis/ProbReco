@@ -37,7 +37,7 @@ S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #Set data (only 10 training observations used for speed)
 data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
 #Set list of functions generating from probabilistic forecast
-prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 #Find weights by SGA (will take a few seconds)
 out<-scoreopt(data,prob,S)
 }

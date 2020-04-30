@@ -4,12 +4,10 @@
 \alias{scoreopt.control}
 \title{Tuning parameters for score optimisation by Stochastic Gradient Ascent}
 \usage{
-scoreopt.control(Q = 500, alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
+scoreopt.control(alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
   maxIter = 500, tol = 0.1, epsilon = 1e-08)
 }
 \arguments{
-\item{Q}{Number of draws for each time period used to estimate energy score. Default is 500.}
-
 \item{alpha}{Learning rate. Deafult is 0.1}
 
 \item{beta1}{Forgetting rate for mean. Default is 0.9.}

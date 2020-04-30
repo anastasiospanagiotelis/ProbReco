@@ -4,7 +4,7 @@
 \alias{energy_score}
 \title{Total energy score (and gradient) for reconciled forecast}
 \usage{
-energy_score(data, prob, S, Gvec, Q = 500)
+energy_score(data, prob, S, Gvec)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -14,8 +14,6 @@ energy_score(data, prob, S, Gvec, Q = 500)
 \item{S}{Matrix encoding linear constraints.}
 
 \item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
-
-\item{Q}{Number of draws for each time period used to estimate energy score. Default is 500.}
 }
 \value{
 Total energy score and gradient w.r.t G.
@@ -36,7 +34,7 @@ Gvec<-as.matrix(runif(8))
 #Set data (only 10 training observations used for speed)
 data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
 #Set list of functions generating from probabilistic forecast
-prob<-map(1:10,function(i){f<-function(){rnorm(3)}})
+prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 #Compute energy_score
 out<-energy_score(data,prob,S,Gvec)
 }

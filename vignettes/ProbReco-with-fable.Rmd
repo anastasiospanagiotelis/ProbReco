@@ -72,14 +72,13 @@ model_window <- function(data_w){
                values_to = 'value')%>%
     as_tsibble(index = 'Time',key='var')%>%
     model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))->m
-    #model(arma11=ETS(value))->m
   return(m)
 }
 ```
 
 Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  This returns a `mable` object.  Here an ARMA(1,1) is be fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.
 
-To fit the model for each window, the map function can be used.  Here we will only fit models to the first 100 windows meaning that $t=501$ to $t=600$ will constitute the training data for learning the reconciliation weights.
+To fit the model for each window, the map function can be used.  Here we will only fit models to the first 10 windows meaning that $t=501$ to $t=510$ will constitute the training data for learning the reconciliation weights.
 
 ```{r}
 #Number of windows for training
@@ -121,7 +120,7 @@ all_y<-map((N+1):(N+W),obs_i)
 
 ```
 
-This list of length 100 has the vector of true realisations from $t=501$ as the first element, the vector of true realisations from $t=502$ as the second element, etc.  Note that the `arrange` and `match` functions are used to preserve the ordering of the variables from top to bottom. Although any ordering is acceptable, the order must agree with the ordering of the rows in the $\boldsymbol{S}$ matrix.
+This list of length 10 has the vector of true realisations from $t=501$ as the first element, the vector of true realisations from $t=502$ as the second element, etc.  Note that the `arrange` and `match` functions are used to preserve the ordering of the variables from top to bottom. Although any ordering is acceptable, the order must agree with the ordering of the rows in the $\boldsymbol{S}$ matrix.
 
 ### The list of probabilistic forecast distributions
 
@@ -131,15 +130,18 @@ The next step is to create a list of functions where the first element generates
 
 make_genfunc<-function(mab){
   f<-function(){
-    generate(mab,times=1,h=1)%>%
+    generate(mab,times=20,h=1)%>%
+      select(var,.rep,.sim)%>%
+      pivot_wider(var,names_from = .rep,values_from = .sim)%>%
       arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
-      pull(.sim)
+      select_if(is.numeric)%>%
+      as.matrix
   }
   return(f)
 }
 ```
 
-The 'inner' function `f` takes a `mable` object, generates a single one-step ahead forecast from the probabilistic distribution.  These are then rearranged in the an order that corresponds with the other arguments. The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
+The 'inner' function `f` takes a `mable` object, generates two hundred, vector-valued, one-step ahead forecast from the probabilistic distribution.  These are then rearranged in the an order that corresponds with the other arguments. The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
 
 ```{r}
 all_prob<-map(all_models,make_genfunc)
@@ -151,7 +153,10 @@ The object `all_prob` is in the form required.
 
 The energy score for bottom up can be found using
 
-```{r}
+```{r,warning=F,message=F}
   G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
-  #energy_score(all_y,all_prob,S,G_bu)
+  es_bu<-energy_score(all_y,all_prob,S,G_bu)
+  es_bu
 ```
+
+Note that this is still a little slow due to the overhead of extracting a matrix from a tibble. 

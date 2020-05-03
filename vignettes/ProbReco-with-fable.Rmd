@@ -23,6 +23,7 @@ The `ProbReco` package assumes that base probabilistic forecasts are available. 
 The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level.  
 
 ```{r}
+library(magrittr)
 library(dplyr)
 library(tidyr)
 library(purrr)
@@ -59,31 +60,38 @@ data_windows[[500]]%>%tail(3)
 ```
 
 
-## Modelling
+## Modelling and forecasting
 
-A function for modelling using data from a single window is written.  This can be used with the map family of functions from the `purrr` package.  This function is given as
+A function for modelling and then obtaining the forecast mean and variance using data from a single window is written below.  This can be used with the map family of functions from the `purrr` package.  This function is given as
 
 ```{r}
 
-model_window <- function(data_w){
+forecast_window <- function(data_w){
   data_w%>%
     pivot_longer(cols = -Time,
                names_to = 'var',
                values_to = 'value')%>%
     as_tsibble(index = 'Time',key='var')%>%
-    model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))->m
-  return(m)
+    model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))%>%
+    forecast(h=1)%>%
+    arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))->f
+    mean<-map_dbl(f$.distribution,use_series,mean)
+    sd<-map_dbl(f$.distribution,use_series,sd)
+ return(list(mean=mean,sd=sd))
 }
+
+
+
 ```
 
-Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  This returns a `mable` object.  Here an ARMA(1,1) is be fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.
+Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  This returns a `mable` object.  Here an ARMA(1,1) is be fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.  The `forecast` function is used to obtain the forecast mean and variance for each variable.  Only 1 step ahead forecasts are obtained for this example.  The variables are arranged in the correct order and then the forecast mean and variance are extracted.  Here, depedence is completely ignored, i.e. the base forecasts are indepenedent.
 
 To fit the model for each window, the map function can be used.  Here we will only fit models to the first 10 windows meaning that $t=501$ to $t=510$ will constitute the training data for learning the reconciliation weights.
 
 ```{r}
 #Number of windows for training
 W<-10
-all_models<-map(data_windows[1:W],model_window)
+all_fc<-map(data_windows[1:W],forecast_window)
 ```
 
 ## Setting up arguments for reconciliation
@@ -127,36 +135,42 @@ This list of length 10 has the vector of true realisations from $t=501$ as the f
 The next step is to create a list of functions where the first element generates from the probabilistic forecast distribution at time $t=501$, the second element generates from the probabilistic forecast distribution at time $t=502$, etc.  To do this write a function that returns a function as follows
 
 ```{r}
-
-make_genfunc<-function(mab){
+#function here
+make_genfunc<-function(input){
   f<-function(){
-    generate(mab,times=20,h=1)%>%
-      select(var,.rep,.sim)%>%
-      pivot_wider(var,names_from = .rep,values_from = .sim)%>%
-      arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
-      select_if(is.numeric)%>%
-      as.matrix
+    fc_mean<-input$mean
+    fc_sd<-input$sd
+    out<-matrix(rnorm(350,mean=fc_mean,sd=fc_sd),7,50)
+    return(out)
   }
   return(f)
 }
+
 ```
 
-The 'inner' function `f` takes a `mable` object, generates two hundred, vector-valued, one-step ahead forecast from the probabilistic distribution.  These are then rearranged in the an order that corresponds with the other arguments. The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
+The 'inner' function `f` generates fifty, vector-valued, one-step ahead forecasts from the probabilistic distribution i.  The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
 
 ```{r}
-all_prob<-map(all_models,make_genfunc)
+all_prob<-map(all_fc,make_genfunc)
 ```
 
 The object `all_prob` is in the form required.
 
-## Finding the reconciliation weights
+## Using the ProbReco functions
 
-The energy score for bottom up can be found using
+The total score for bottom up can be found using
 
-```{r,warning=F,message=F}
+```{r}
   G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
-  es_bu<-energy_score(all_y,all_prob,S,G_bu)
+  es_bu<-total_score(all_y,all_prob,S,G_bu)
   es_bu
 ```
 
-Note that this is still a little slow due to the overhead of extracting a matrix from a tibble. 
+The optimal score can be found
+
+```{r}
+  opt<-scoreopt(all_y,all_prob,S)
+  opt$a
+  opt$G
+  opt$val
+```

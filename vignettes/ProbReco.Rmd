@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ## Background
 
-The `ProbReco` package carries out probabilistic forecast reconciliation via energy score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Ascent.
+The `ProbReco` package carries out probabilistic forecast reconciliation via score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Ascent.
 
 ### Probabilistic Forecast Reconciliation
 
@@ -30,22 +30,22 @@ where $\mathcal{A}$ is some region of $\mathbb{R}^n$ (more precisely a member of
 
 $$\tilde{\nu}_{t+h|t}(\psi(\mathcal{A}))=\hat{\nu}_{t+h|t}(\mathcal{A})\,,$$
 
-where $\psi:\mathbb{R}^n\rightarrow\mathfrak{s}$ is a mapping and $\psi{\mathcal{A}}$ is the image of $\mathcal{A}$ under $\psi$.  In this package we consider linear transformations for $\psi$
+where $\psi:\mathbb{R}^n\rightarrow\mathfrak{s}$ is a mapping and $\psi({\mathcal{A}})$ is the image of $\mathcal{A}$ under $\psi$.  In this package we consider linear transformations for $\psi$
 
 $$
-\tilde{\boldsymbol{y}}_{t+h|t}=\psi(\hat{\boldsymbol{y}}_{t+h|t})=\boldsymbol{S}(\boldsymbol{G}\hat{\boldsymbol{y}}_{t+h|t}+\boldsymbol{a})\,,
+\tilde{\boldsymbol{y}}_{t+h|t}=\psi(\hat{\boldsymbol{y}}_{t+h|t})=\boldsymbol{S}(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}_{t+h|t})\,,
 $$
 where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}$.  If $\hat{\boldsymbol{y}}_{t+h|t}$ is sampled from the base forecast then $\tilde{\boldsymbol{y}}_{t+h|t}$ will be sampled from the reconciled forecast.  The objective of probabilistic forecast reconciliation is to find values of $\boldsymbol{G}$ and $\boldsymbol{a}$ that are optimal.
 
 ### Energy Score
 
-Scoring rules are used to measure the quality of probabilistic forecasts.  The loss function used in this package is the total energy score given by
+Scoring rules are used to measure the quality of probabilistic forecasts.  While the package will eventually support a variety of scores, the only loss function implemented in the package is the total energy score (with $aplha=1$) given by
 
 $$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
 
 where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy score given by
 
-$$\hat{K}_{t+h}=\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|-\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}+\boldsymbol{a}\right)\right|\right|\,,$$
+$$\hat{K}_{t+h}=\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|-\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|\,,$$
 
 where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a positively oriented energy score, i.e. larger values of the score indicate more accurate forecasts.
 
@@ -93,7 +93,7 @@ This form of storing data is unconvential but facilitated the use of `purrr` sty
 
 The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
-Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stored these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these function can be created uses the `map` function.
+Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stored these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map` function.
 
 ```{r}
 #Function
@@ -112,12 +112,22 @@ Gvec<-runif(8)
 Gvec
 ```
 
-## The `energy_score` and `scoreopt` functions
+### Checking inputs with `checkinputs`
 
-The function `energy_score` provides an estimate of the total energy score and its gradient.  The gradient is evaluated by algorithmic differentiation.
+To check that all inputs are correctly specified use the `checkinputs` function
 
 ```{r}
-out<-energy_score(data,prob,S,Gvec)
+checkinputs(data,prob,S,Gvec)
+```
+
+An error will be thrown if an input is incorrectly set up.
+
+## The `total_score` and `scoreopt` functions
+
+The function `tota_score` provides an estimate of the total score and its gradient.  The gradient is evaluated by algorithmic differentiation.
+
+```{r}
+out<-total_score(data,prob,S,Gvec)
 out$value
 out$grad
 ```
@@ -125,7 +135,7 @@ out$grad
 Since the loss function is stochastic, these values will change each time the function is run.
 
 ```{r}
-out2<-energy_score(data,prob,S,Gvec)
+out2<-total_score(data,prob,S,Gvec)
 out$value
 out2$value
 out$grad
@@ -146,11 +156,12 @@ out$G
 out$val
 ```
 
-Since everything is Gaussian, and the mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{S}\boldsymbol{a}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
+Since everything is Gaussian, and the true mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{S}\boldsymbol{a}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
+
 ```{r}
 S%*%out$a
 ```
-is close to the true mean of $(4,2,2)'$.  The variance covaraiance matrix is
+is close to the true mean of $(2,1,1)'$.  The variance covaraiance matrix is
 
 ```{r}
 S%*%out$G%*%t(out$G)%*%t(S)

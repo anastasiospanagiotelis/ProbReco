@@ -1,18 +1,17 @@
-
-#' @title Total energy score (and gradient) for reconciled forecast
+#' @title Total score (and gradient) for reconciled forecast
 #' 
-#' @description Function to find an estimate of the total energy score for a linearly reconciled 
-#' probabilistic forecast.  Also funds the gradient by automatic differentiation.
+#' @description Function to find an estimate of the total score for a linearly reconciled 
+#' probabilistic forecast.  Also finds the gradient by automatic differentiation.
 #' 
 #' @export
 #' @family ProbReco functions
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
-#' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=d+SG\hat{y}}.  The first \eqn{n} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @return Total energy score and gradient w.r.t G.
+#' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @return Total score and gradient w.r.t G.
 #' \item{grad}{The estimate of the gradient.}
-#' \item{value}{The estimated total energy score.}
+#' \item{value}{The estimated total score.}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -24,10 +23,10 @@
 #' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
 #' #Set list of functions generating from probabilistic forecast
 #' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
-#' #Compute energy_score
-#' out<-energy_score(data,prob,S,Gvec)
+#' #Compute total score
+#' out<-total_score(data,prob,S,Gvec)
 
-energy_score<-function(data,prob,S,Gvec){
+total_score<-function(data,prob,S,Gvec){
 
   
   #Draws from probabilistic forecast
@@ -36,9 +35,9 @@ energy_score<-function(data,prob,S,Gvec){
   #Copy from probabilistic forecast
   xs<-invoke_map(prob)
 
-  #Find energy score contributions
+  #Find score contributions
   all<-purrr::pmap(list(xin=x,xsin=xs,yin=data),
-                   .energy_i,Sin=S,Gin=Gvec)
+                   .score,Sin=S,Gin=Gvec)
   
   #Transpose list
   allt<-purrr::transpose(all)
@@ -52,7 +51,7 @@ energy_score<-function(data,prob,S,Gvec){
 #' @title Tuning parameters for score optimisation by Stochastic Gradient Ascent
 #'
 #' @description Function to set tuning parameters for stochastic gradient ascent used to
-#' find a reconciliation matrix that optimised a scoring function.
+#' find a reconciliation matrix that optimises total score.
 #' 
 #' @export
 #' @family ProbReco functions
@@ -61,7 +60,7 @@ energy_score<-function(data,prob,S,Gvec){
 #' @param beta2 Forgetting rate for variance. Default is 0.999.
 #' @param maxIter Maximum number of iterations. Default is 500
 #' @param tol Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.1.
-#' @param epsilon small constant added to denominator of step size. Default is 1e-8
+#' @param epsilon Small constant added to denominator of step size. Default is 1e-8
 #' @examples 
 #' #Change Maximum Iterations to 1000
 #' scoreopt.control(maxIter=1000)
@@ -70,7 +69,7 @@ scoreopt.control<-function(alpha = 0.1,
                       beta1 = 0.9,
                       beta2 = 0.999,
                       maxIter = 500,
-                      tol = 0.1,
+                      tol = 0.01,
                       epsilon = 1e-8){ 
   
   
@@ -107,7 +106,7 @@ scoreopt.control<-function(alpha = 0.1,
 
 #' @title Check inputs to function.
 #'
-#' @description This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{energy_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
+#' @description This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{total_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
 #'  
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
@@ -154,7 +153,7 @@ checkinputs<-function(data,prob,S,G){
 
 #' @title Score optimisation by Stochastic Gradient Ascent
 #'
-#' @description Function find a reconciliation matrix that optimises score 
+#' @description Function find a reconciliation matrix that optimises total score 
 #' using training data.  Stochastic gradient ascent is used for optimisation
 #' with gradients found using automatic differentiation.
 #' 
@@ -168,7 +167,7 @@ checkinputs<-function(data,prob,S,G){
 #' @return Optimised reconciliation parameters.
 #' \item{a}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
-#' \item{val}{The estimated optimal total energy score.}
+#' \item{val}{The estimated optimal total score.}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -188,11 +187,13 @@ scoreopt<-function(data,
                 Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list()){
   
+  #Get number of rows and columns for S
   nS<-nrow(S)
   mS<-ncol(S)
-  checkinputs(data,prob,S,Ginit)  
   
-  #Initialise 
+  checkinputs(data,prob,S,Ginit) # Checks for errors in inputs  
+  
+  #Initialise parameters of SGA
   m<-0 #mean 
   v<-0 #variance
   i<-1 #iteration 
@@ -201,53 +202,36 @@ scoreopt<-function(data,
   #Controls
   control <- do.call("scoreopt.control", control)
   
-  list2env(control,.GlobalEnv)
+  list2env(control,.GlobalEnv) #Pulls everything from the list into the global environment
   
-  #Initialise G at least squares reconciliation
+  #Initialise Gvec
   Gvec<-Ginit
-  #oldval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec)$value
-  
-  
-  
+
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
-    gval<-energy_score(data = data, prob = prob,S = S,Gvec = Gvec)
+    gval<-total_score(data = data, prob = prob,S = S,Gvec = Gvec)
     g<-gval$grad
     val<-gval$value
     
-    #Update moving averaged
+    #Update moving averages
     m<-beta1*m+(1-beta1)*g
     v<-beta2*v+(1-beta2)*(g^2)
     
     #Bias correct
-    m_bc<-m/(1-beta1^i)
-    v_bc<-v/(1-beta2^i)
+    m_bc<-m/(1-(beta1^i))
+    v_bc<-v/(1-(beta2^i))
     
     #Update
-    Gvec<-Gvec+(alpha*m_bc)/(sqrt(v_bc)+epsilon)
-
-    dif<-abs(m_bc/(sqrt(v_bc)+epsilon))
+    Gvec<-Gvec+(alpha*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
+    dif<-abs((alpha*m_bc)/(sqrt(v_bc)+epsilon)) #Absolute change in Gvec 
     
     #Increment for loop
     i<-i+1
-  
-    #For debugging
-    # print('i')
-    # print(i-1)
-    # print('g')
-    # print(g)
-    # print('Gvec')
-    # print(Gvec)
-    # print('val')
-    # print(val)
-    # print('dif')
-    # print(dif)
 
-    
   }
   
-  a<-Gvec[1:mS]
-  G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS)
+  a<-Gvec[1:mS] #Extract first m elements for translation.
+  G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS) #Extract remaining elements for G.
   return(list(a=a,G=G,val=val))
   
 }

@@ -22,10 +22,10 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 Optimised reconciliation parameters.
 \item{a}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
-\item{val}{The estimated optimal total energy score.}
+\item{val}{The estimated optimal total score.}
 }
 \description{
-Function find a reconciliation matrix that optimises score 
+Function find a reconciliation matrix that optimises total score 
 using training data.  Stochastic gradient ascent is used for optimisation
 with gradients found using automatic differentiation.
 }
@@ -42,7 +42,7 @@ prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 out<-scoreopt(data,prob,S)
 }
 \seealso{
-Other ProbReco functions: \code{\link{energy_score}},
-  \code{\link{scoreopt.control}}
+Other ProbReco functions: \code{\link{scoreopt.control}},
+  \code{\link{total_score}}
 }
 \concept{ProbReco functions}

@@ -5,7 +5,7 @@
 \title{Tuning parameters for score optimisation by Stochastic Gradient Ascent}
 \usage{
 scoreopt.control(alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
-  maxIter = 500, tol = 0.1, epsilon = 1e-08)
+  maxIter = 500, tol = 0.01, epsilon = 1e-08)
 }
 \arguments{
 \item{alpha}{Learning rate. Deafult is 0.1}
@@ -18,18 +18,18 @@ scoreopt.control(alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
 
 \item{tol}{Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.1.}
 
-\item{epsilon}{small constant added to denominator of step size. Default is 1e-8}
+\item{epsilon}{Small constant added to denominator of step size. Default is 1e-8}
 }
 \description{
 Function to set tuning parameters for stochastic gradient ascent used to
-find a reconciliation matrix that optimised a scoring function.
+find a reconciliation matrix that optimises total score.
 }
 \examples{
 #Change Maximum Iterations to 1000
 scoreopt.control(maxIter=1000)
 }
 \seealso{
-Other ProbReco functions: \code{\link{energy_score}},
-  \code{\link{scoreopt}}
+Other ProbReco functions: \code{\link{scoreopt}},
+  \code{\link{total_score}}
 }
 \concept{ProbReco functions}

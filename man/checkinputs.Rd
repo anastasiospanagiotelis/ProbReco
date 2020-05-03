@@ -16,5 +16,5 @@ checkinputs(data, prob, S, G)
 \item{G}{Values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
 }
 \description{
-This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{energy_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
+This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{total_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
 }

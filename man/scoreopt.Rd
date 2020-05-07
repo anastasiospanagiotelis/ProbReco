@@ -5,7 +5,7 @@
 \title{Score optimisation by Stochastic Gradient Ascent}
 \usage{
 scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
-  \%*\% S, t(S)))), control = list())
+  \%*\% S, t(S)))), control = list(), trace = F)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -17,6 +17,8 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 \item{Ginit}{Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.}
 
 \item{control}{Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
+
+\item{trace}{Flag to keep details of SGA.  Default is FALSE}
 }
 \value{
 Optimised reconciliation parameters.

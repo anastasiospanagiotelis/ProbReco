@@ -31,16 +31,30 @@ total_score<-function(data,prob,S,Gvec){
   
   #Draws from probabilistic forecast
   x<-invoke_map(prob)
-
   #Copy from probabilistic forecast
   xs<-invoke_map(prob)
-
+  
+  # Check for repeated sample bug
+  # AD in Stan will return a NA gradient if the any element of x and xs is repeated
+  # Rather than debug stan, a work around is to add a tiny bit of noise when this occurs
+  # Note this can happen when the probabilisitic forecast is based on sampling residuals
+  for(i in 1:length(x)){
+    dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
+    if(any(dif==0)){ #If any x and xs are identical
+      noise_sd<-1e-8*(apply(x[[i]],1,sd)%>%min) #Compute a sd for a small amount of noise
+      xs[[i]][,dif==0]<-xs[[i]][,dif==0] + noise_sd*rnorm(nrow(xs[[i]])) #Add noise
+    }
+  }
+  
+  
   #Find score contributions
   all<-purrr::pmap(list(xin=x,xsin=xs,yin=data),
                    .score,Sin=S,Gin=Gvec)
   
   #Transpose list
   allt<-purrr::transpose(all)
+  
+ 
   
   #Sum contributions to get value and gradient
   value<-Reduce(`+`,allt$val)

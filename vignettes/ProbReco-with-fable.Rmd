@@ -174,3 +174,65 @@ The optimal score can be found
   opt$G
   opt$val
 ```
+
+
+## Different Base Forecasts
+
+Note that the above example assumes that the base forecasts are Gaussian and independent.  One way to relax both of these examples is to construct a probabilistic forecast based on the empirical distribution of the residuals.  To do this we must adjust the function that produces forecasts to collect residuals.
+
+```{r}
+
+forecast_window <- function(data_w){
+  data_w%>%
+    pivot_longer(cols = -Time,
+               names_to = 'var',
+               values_to = 'value')%>%
+    as_tsibble(index = 'Time',key='var')%>%
+    model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))->m
+    forecast(m,h=1)%>%
+      arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))->f
+    fc_mean<-map_dbl(f$.distribution,use_series,mean)
+    residuals(m)%>%
+      select(-.model)%>%
+      arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
+      pivot_wider(id_cols = Time,
+                names_from = var,
+                values_from = .resid)%>%
+      select(-Time)%>%
+      as.matrix()%>%t()->E
+    
+ return(list(fc_mean=fc_mean,resid=E))
+}
+all_fc<-map(data_windows[1:W],forecast_window)
+
+```
+
+
+
+```{r}
+#function here
+make_genfunc<-function(input){
+  f<-function(){
+    fc_mean<-input$fc_mean
+    fc_r<-input$resid
+    ind<-sample(1:ncol(fc_r),50,replace=T)
+    out<-fc_r[,ind]+fc_mean
+    return(out)
+  }
+  return(f)
+}
+
+all_prob<-map(all_fc,make_genfunc)
+
+```
+
+Now the SGA can be run to find reconciliation weights.
+
+
+```{r}
+  opt<-scoreopt(all_y,all_prob,S)
+  opt$a
+  opt$G
+  opt$val
+```
+

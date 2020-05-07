@@ -164,6 +164,7 @@ checkinputs<-function(data,prob,S,G){
 #' @param S Matrix encoding linear constraints.
 #' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
 #' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @param trace Flag to keep details of SGA.  Default is FALSE
 #' @return Optimised reconciliation parameters.
 #' \item{a}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
@@ -185,7 +186,8 @@ scoreopt<-function(data,
                 prob,
                 S,
                 Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
-                control=list()){
+                control=list(),
+                trace=F){
   
   #Get number of rows and columns for S
   nS<-nrow(S)
@@ -206,6 +208,13 @@ scoreopt<-function(data,
   
   #Initialise Gvec
   Gvec<-Ginit
+  
+  #Initialise for trace
+  if (trace){
+    G_store<-matrix(NA,length(Gvec),maxIter)
+    val_store<-rep(NA,maxIter)
+  }
+  
 
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
@@ -225,6 +234,12 @@ scoreopt<-function(data,
     Gvec<-Gvec+(alpha*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
     dif<-abs((alpha*m_bc)/(sqrt(v_bc)+epsilon)) #Absolute change in Gvec 
     
+    #Store if trace
+    if(trace){
+      G_store[,i]<-Gvec
+      val_store[i]<-val
+    }
+    
     #Increment for loop
     i<-i+1
 
@@ -232,6 +247,16 @@ scoreopt<-function(data,
   
   a<-Gvec[1:mS] #Extract first m elements for translation.
   G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS) #Extract remaining elements for G.
-  return(list(a=a,G=G,val=val))
+  
+  if(trace){
+    G_store<-na.omit(G_store)%>%as.numeric()
+    val_store<-na.omit(val_store)%>%as.numeric()
+    out<-list(a=a,G=G,val=val,G_store,val_store)
+  }
+  else{
+    out<-list(a=a,G=G,val=val)
+  }
+  
+  return(out)
   
 }

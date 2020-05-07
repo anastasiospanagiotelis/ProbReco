@@ -249,9 +249,9 @@ scoreopt<-function(data,
   G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS) #Extract remaining elements for G.
   
   if(trace){
-    G_store<-na.omit(G_store)%>%as.numeric()
-    val_store<-na.omit(val_store)%>%as.numeric()
-    out<-list(a=a,G=G,val=val,G_store,val_store)
+    G_store<-G_store[,1:(i-1)]
+    val_store<-val_store[1:(i-1)]
+    out<-list(a=a,G=G,val=val,G_store=G_store,val_store=val_store)
   }
   else{
     out<-list(a=a,G=G,val=val)

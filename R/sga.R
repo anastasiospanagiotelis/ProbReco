@@ -35,7 +35,7 @@ total_score<-function(data,prob,S,Gvec){
   xs<-invoke_map(prob)
   
   # Check for repeated sample bug
-  # AD in Stan will return a NA gradient if the any element of x and xs is repeated
+  # AD in Stan will return a NA gradient if any element of x and xs is repeated
   # Rather than debug stan, a work around is to add a tiny bit of noise when this occurs
   # Note this can happen when the probabilisitic forecast is based on sampling residuals
   for(i in 1:length(x)){
@@ -183,6 +183,8 @@ checkinputs<-function(data,prob,S,G){
 #' \item{a}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
+#' \item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGA.}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGA.}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -265,7 +267,7 @@ scoreopt<-function(data,
   if(trace){
     G_store<-G_store[,1:(i-1)]
     val_store<-val_store[1:(i-1)]
-    out<-list(a=a,G=G,val=val,G_store=G_store,val_store=val_store)
+    out<-list(a=a,G=G,val=val,Gvec_store=G_store,val_store=val_store)
   }
   else{
     out<-list(a=a,G=G,val=val)

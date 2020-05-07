@@ -25,6 +25,8 @@ Optimised reconciliation parameters.
 \item{a}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
+\item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGA.}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGA.}
 }
 \description{
 Function find a reconciliation matrix that optimises total score 

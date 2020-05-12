@@ -21,7 +21,7 @@ Total score and gradient w.r.t G.
 \item{value}{The estimated total score.}
 }
 \description{
-Function to find an estimate of the total score for a linearly reconciled 
+Function to find an estimate of the total energy score for a linearly reconciled 
 probabilistic forecast.  Also finds the gradient by automatic differentiation.
 }
 \examples{

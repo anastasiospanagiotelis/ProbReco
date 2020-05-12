@@ -22,11 +22,16 @@ scoreopt.control(alpha = 0.001, beta1 = 0.9, beta2 = 0.999,
 }
 \description{
 Function to set tuning parameters for stochastic gradient ascent used to
-find a reconciliation matrix that optimises total score.
+find a reconciliation matrix that optimises total score.  The defaults are 
+those of \insertCite{adam;textual}{ProbReco} and more details on the tuning 
+parameters can be found therein.
 }
 \examples{
 #Change Maximum Iterations to 1000
 scoreopt.control(maxIter=1000)
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other ProbReco functions: \code{\link{scoreopt}},

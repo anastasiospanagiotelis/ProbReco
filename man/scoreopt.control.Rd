@@ -4,11 +4,11 @@
 \alias{scoreopt.control}
 \title{Tuning parameters for score optimisation by Stochastic Gradient Ascent}
 \usage{
-scoreopt.control(alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
-  maxIter = 500, tol = 0.01, epsilon = 1e-08)
+scoreopt.control(alpha = 0.001, beta1 = 0.9, beta2 = 0.999,
+  maxIter = 500, tol = 1e-04, epsilon = 1e-08)
 }
 \arguments{
-\item{alpha}{Learning rate. Deafult is 0.1}
+\item{alpha}{Learning rate. Deafult is 0.001}
 
 \item{beta1}{Forgetting rate for mean. Default is 0.9.}
 
@@ -16,7 +16,7 @@ scoreopt.control(alpha = 0.1, beta1 = 0.9, beta2 = 0.999,
 
 \item{maxIter}{Maximum number of iterations. Default is 500}
 
-\item{tol}{Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.1.}
+\item{tol}{Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.0001.}
 
 \item{epsilon}{Small constant added to denominator of step size. Default is 1e-8}
 }

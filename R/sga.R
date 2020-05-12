@@ -69,21 +69,21 @@ total_score<-function(data,prob,S,Gvec){
 #' 
 #' @export
 #' @family ProbReco functions
-#' @param alpha Learning rate. Deafult is 0.1
+#' @param alpha Learning rate. Deafult is 0.001
 #' @param beta1 Forgetting rate for mean. Default is 0.9.
 #' @param beta2 Forgetting rate for variance. Default is 0.999.
 #' @param maxIter Maximum number of iterations. Default is 500
-#' @param tol Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.1.
+#' @param tol Tolerance for stopping criterion. Algorithm stops when the change in all parameter values is less than this amount. Default is 0.0001.
 #' @param epsilon Small constant added to denominator of step size. Default is 1e-8
 #' @examples 
 #' #Change Maximum Iterations to 1000
 #' scoreopt.control(maxIter=1000)
 
-scoreopt.control<-function(alpha = 0.1,
+scoreopt.control<-function(alpha = 0.001,
                       beta1 = 0.9,
                       beta2 = 0.999,
                       maxIter = 500,
-                      tol = 0.01,
+                      tol = 0.0001,
                       epsilon = 1e-8){ 
   
   

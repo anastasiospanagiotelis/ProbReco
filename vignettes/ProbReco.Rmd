@@ -3,6 +3,7 @@ title: "Probabilistic Forecast Reconciliation via energy score optimisation."
 author: "Anastasios Panagiotelis"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+bibliography: ../inst/REFERENCES.bib
 vignette: >
   %\VignetteIndexEntry{ProbReco}
   %\VignetteEngine{knitr::rmarkdown}
@@ -39,7 +40,7 @@ where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}
 
 ### Energy Score
 
-Scoring rules are used to measure the quality of probabilistic forecasts.  While the package will eventually support a variety of scores, the only loss function implemented in the package is the total energy score (with $aplha=1$) given by
+Scoring rules are used to measure the quality of probabilistic forecasts.  While the package will eventually support a variety of scores, the only loss function implemented in the package is the total energy score (with $alpha=1$) given by
 
 $$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
 
@@ -47,11 +48,11 @@ where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy sc
 
 $$\hat{K}_{t+h}=\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|-\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|\,,$$
 
-where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a positively oriented energy score, i.e. larger values of the score indicate more accurate forecasts.
+where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a positively oriented energy score, i.e. larger values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
 
 ### Optimisation
 
-A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Ascent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library.  The learning rates for each update are determined using the ADAM method.
+A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Ascent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
 
 ## Setting up function inputs
 
@@ -171,3 +172,5 @@ S%*%out$G%*%t(out$G)%*%t(S)
 $$\begin{pmatrix}2&1&1\\1&1&0\\1&0&1\end{pmatrix}$$
 
 These values will be even closer if more training observations are used and more iterates are drawn from the probabilistic forecasts to estimate the score.
+
+## References

@@ -9,6 +9,7 @@
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @return Total score and gradient w.r.t (d,G).
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total score.}
@@ -26,7 +27,16 @@
 #' #Compute total score
 #' out<-total_score(data,prob,S,Gvec)
 
-total_score<-function(data,prob,S,Gvec){
+total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
+
+
+  
+  #Extract info about score
+  if(score$score=='energy'){
+    scorecode<-1
+    alpha<-score$alpha
+  }
+  
 
   
   #Draws from probabilistic forecast
@@ -49,7 +59,7 @@ total_score<-function(data,prob,S,Gvec){
   
   #Find score contributions
   all<-purrr::pmap(list(xin=x,xsin=xs,yin=data),
-                   .score,Sin=S,Gin=Gvec)
+                   .score,Sin=S,Gin=Gvec,scorecode,alpha)
   
   #Transpose list
   allt<-purrr::transpose(all)
@@ -130,9 +140,24 @@ scoreopt.control<-function(eta = 0.001,
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param G Values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 
-checkinputs<-function(data,prob,S,G){
+checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
   #Checks on lengths of data and prob match
+  if(!is.list(score)||!identical(sort(names(score)),c('alpha','score'))){
+    stop('score must be a list with named elements alpha and score')
+  }
+  
+  supported_scores<-c('energy')
+  
+  if(!(score$score%in%supported_scores)){
+    stop(paste('score must match a score supported by the package.  Currently these are:',paste(supported_scores,collapse = ',')))
+  }
+  
+  if(!(is.numeric(score$alpha))||score$alpha<=0||score$alpha>2){
+    stop('alpha must lie in (0,2]')
+  }
+  
   if (length(data)!=length(prob)){
     stop('data and prob must be lists with the same length')
   }
@@ -182,6 +207,7 @@ checkinputs<-function(data,prob,S,G){
 #' @param S Matrix encoding linear constraints.
 #' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
 #' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @param trace Flag to keep details of SGD.  Default is FALSE
 #' @return Optimised reconciliation parameters.
 #' \item{d}{Translation vector for reconciliation.}
@@ -207,13 +233,14 @@ scoreopt<-function(data,
                 S,
                 Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list(),
+                score=list(score="energy",alpha=1),
                 trace=F){
   
   #Get number of rows and columns for S
   nS<-nrow(S)
   mS<-ncol(S)
   
-  checkinputs(data,prob,S,Ginit) # Checks for errors in inputs  
+  checkinputs(data,prob,S,Ginit,score) # Checks for errors in inputs  
   
   #Initialise parameters of SGD
   m<-0 #mean 
@@ -238,7 +265,7 @@ scoreopt<-function(data,
 
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
-    gval<-total_score(data = data, prob = prob,S = S,Gvec = Gvec)
+    gval<-total_score(data = data, prob = prob,S = S,Gvec = Gvec,score=score)
     g<-gval$grad
     val<-gval$value
     

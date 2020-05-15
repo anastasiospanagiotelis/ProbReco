@@ -4,7 +4,8 @@
 \alias{total_score}
 \title{Total score (and gradient) for reconciled forecast}
 \usage{
-total_score(data, prob, S, Gvec)
+total_score(data, prob, S, Gvec, score = list(score = "energy", alpha =
+  1))
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -14,6 +15,8 @@ total_score(data, prob, S, Gvec)
 \item{S}{Matrix encoding linear constraints.}
 
 \item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
+
+\item{score}{Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
 }
 \value{
 Total score and gradient w.r.t (d,G).

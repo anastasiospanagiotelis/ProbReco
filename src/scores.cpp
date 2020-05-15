@@ -22,10 +22,14 @@ struct scoretemp {
   const Matrix<double, Dynamic, 1> y_;  // Realisation
   const Matrix<double, Dynamic, Dynamic> x_; // Draws from probabilistic forecast
   const Matrix<double, Dynamic, Dynamic> xs_; // Draws from probabilistic forecast
+  int score_;//Score to be used
+  double alpha_; //Additional parameters
   scoretemp(const Matrix<double, Dynamic, Dynamic>& S,
      const Matrix<double, Dynamic, 1>& y,
      const Matrix<double, Dynamic, Dynamic>& x, 
-     const Matrix<double, Dynamic, Dynamic>& xs) : S_(S),y_(y),x_(x),xs_(xs) { }
+     const Matrix<double, Dynamic, Dynamic>& xs, 
+     int score,
+     double alpha) : S_(S),y_(y),x_(x),xs_(xs),score_(score),alpha_(alpha) { }
   template <typename T>
   T operator()(const Matrix<T, Dynamic, 1>& Gvec) const{
     int n = S_.rows();  // Number of series
@@ -39,21 +43,25 @@ struct scoretemp {
     Matrix<T, Dynamic, Dynamic> xrs = stan::math::multiply(SG,xs_); // Draw from reconciled forecast (needs stan::math::multiply)
     
     Matrix<T, Dynamic, 1> d = stan::math::multiply(S_,g1);  // Translation
-    Matrix<T, Dynamic, 1> yd = y_-d;  // y-d
     
-    Matrix<T, Dynamic, 1> dif1; // Initialise vectors
-    Matrix<T, Dynamic, 1> dif2; // Initialise vectors
-     
+    T dif1norm; // dif1norm
     T term1 = 0; // Intialise terms for cumulative sum
-    T term2 = 0; // Intialise terms for sumulative sum
-    
-    for (int j=0; j<Q; j++){
-      dif1 = xr.col(j) - xrs.col(j); // Difference for first term (translation cancels)
-      dif2 = (yd-xr.col(j)); // Difference for second term (translation cancels)
-      term1 += dif1.norm(); // Update sum
-      term2 += dif2.norm(); // Update sum
+    T term2 = 0; // Intialise terms for sumulative sum    
+    if (score_==1){
+      Matrix<T, Dynamic, 1> yd = y_-d;  // y-d
+      
+      Matrix<T, Dynamic, 1> dif1; // Initialise vectors
+      Matrix<T, Dynamic, 1> dif2; // Initialise vectors
+      
+
+      
+      for (int j=0; j<Q; j++){
+        dif1 = xr.col(j) - xrs.col(j); // Difference for first term (translation cancels)
+        dif2 = (yd-xr.col(j)); // Difference for second term (translation cancels)
+        term1 += stan::math::pow(dif1.norm(),alpha_); // Update sum
+        term2 += stan::math::pow(dif2.norm(),alpha_); // Update sum
+      }
     }
-    
     return ( ( term2 - (0.5 * term1 ) ) / Q ); // Energy score
   }
 };
@@ -71,7 +79,9 @@ Rcpp::List score(Rcpp::NumericMatrix Sin, // Constraints matrix
                 Rcpp::NumericVector yin, // Realisations
                 Rcpp::NumericMatrix xin,// Draws from probabilistic forecasts
                 Rcpp::NumericMatrix xsin, // Draws from probabilistic forecasts
-                Rcpp::NumericVector Gin){
+                Rcpp::NumericVector Gin,
+                int scorein,
+                double alphain) {
   
    //Convert from R objects to Eigen objects
    Map<Matrix<double,Dynamic,Dynamic>> S(Rcpp::as<Map<Matrix<double,Dynamic,Dynamic>> >(Sin));
@@ -79,7 +89,8 @@ Rcpp::List score(Rcpp::NumericMatrix Sin, // Constraints matrix
    Map<Matrix<double,Dynamic, Dynamic>> x(Rcpp::as<Map<Matrix<double,Dynamic, Dynamic>> >(xin));
    Map<Matrix<double,Dynamic, Dynamic>> xs(Rcpp::as<Map<Matrix<double,Dynamic, Dynamic>> >(xsin));
    Map<Matrix<double,Dynamic, 1>> G(Rcpp::as<Map<Matrix<double,Dynamic, 1>> >(Gin));
-   scoretemp f(S,y,x,xs); // Instantiate template
+   
+   scoretemp f(S,y,x,xs,scorein,alphain); // Instantiate template
    double fx; // Value of function
    Matrix<double, Dynamic, 1> grad_fx; // Initialise gradient
    stan::math::gradient(f, G, fx, grad_fx); //Automatic differentiation

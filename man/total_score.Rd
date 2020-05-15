@@ -13,10 +13,10 @@ total_score(data, prob, S, Gvec)
 
 \item{S}{Matrix encoding linear constraints.}
 
-\item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
+\item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
 }
 \value{
-Total score and gradient w.r.t G.
+Total score and gradient w.r.t (d,G).
 \item{grad}{The estimate of the gradient.}
 \item{value}{The estimated total score.}
 }

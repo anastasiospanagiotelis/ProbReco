@@ -172,7 +172,7 @@ The optimal score can be found
 
 ```{r}
   opt<-scoreopt(all_y,all_prob,S)
-  opt$a
+  opt$d
   opt$G
   opt$val
 ```
@@ -238,7 +238,7 @@ Finally the SGD can be run to find reconciliation weights.
 
 ```{r}
   opt_ng<-scoreopt(all_y,all_prob_ng,S)
-  opt_ng$a
+  opt_ng$d
   opt_ng$G
   
   opt_ng$val

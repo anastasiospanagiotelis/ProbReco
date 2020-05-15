@@ -34,9 +34,9 @@ $$\tilde{\nu}_{t+h|t}(\psi(\mathcal{A}))=\hat{\nu}_{t+h|t}(\mathcal{A})\,,$$
 where $\psi:\mathbb{R}^n\rightarrow\mathfrak{s}$ is a mapping and $\psi({\mathcal{A}})$ is the image of $\mathcal{A}$ under $\psi$.  In this package we consider linear transformations for $\psi$
 
 $$
-\tilde{\boldsymbol{y}}_{t+h|t}=\psi(\hat{\boldsymbol{y}}_{t+h|t})=\boldsymbol{S}(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}_{t+h|t})\,,
+\tilde{\boldsymbol{y}}_{t+h|t}=\psi(\hat{\boldsymbol{y}}_{t+h|t})=\boldsymbol{S}(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}_{t+h|t})\,,
 $$
-where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}$.  If $\hat{\boldsymbol{y}}_{t+h|t}$ is sampled from the base forecast then $\tilde{\boldsymbol{y}}_{t+h|t}$ will be sampled from the reconciled forecast.  The objective of probabilistic forecast reconciliation is to find values of $\boldsymbol{G}$ and $\boldsymbol{a}$ that are optimal.
+where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}$.  If $\hat{\boldsymbol{y}}_{t+h|t}$ is sampled from the base forecast then $\tilde{\boldsymbol{y}}_{t+h|t}$ will be sampled from the reconciled forecast.  The objective of probabilistic forecast reconciliation is to find values of $\boldsymbol{G}$ and $\boldsymbol{d}$ that are optimal.
 
 ### Energy Score
 
@@ -46,13 +46,13 @@ $$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
 
 where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy score given by
 
-$$\hat{K}_{t+h}=Q^{-1}\left(\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|-\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|\right)\,,$$
+$$\hat{K}_{t+h}=Q^{-1}\left(\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|-\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|\right)\,,$$
 
 where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a negatively oriented energy score, i.e. smaller values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
 
 ### Optimisation
 
-A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
+A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{d}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
 
 ## Setting up function inputs
 
@@ -106,7 +106,7 @@ prob[[5]]
 
 ### The `Gvec` and `Ginit` argument
 
-The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{a}$.  The remaining elements are the elements of $\boldsymbol{G}$ vecorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
+The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{d}$.  The remaining elements are the elements of $\boldsymbol{G}$ vecorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
 
 ```{r}
 Gvec<-runif(8)
@@ -149,10 +149,10 @@ The function `scoreopt` maximises the loss function using stochastic gradient de
 out<-scoreopt(data,prob,S)
 ```
 
-The output includes $\boldsymbol{a}$ and $\boldsymbol{G}$ which is converted back to a matrix using column-major ordering.  The converged value of the loss function is also provided.
+The output includes $\boldsymbol{d}$ and $\boldsymbol{G}$ which is converted back to a matrix using column-major ordering.  The converged value of the loss function is also provided.
 
 ```{r}
-out$a
+out$d
 out$G
 out$val
 ```
@@ -160,7 +160,7 @@ out$val
 Since everything is Gaussian, and the true mean of the base forecasts is $\boldsymbol{0}$, the mean of the reconciled distribution is given by $\boldsymbol{S}\boldsymbol{a}$.  The variance covariance matrix is given by $\boldsymbol{S}\boldsymbol{G}\boldsymbol{I}\boldsymbol{G}'\boldsymbol{S}'$.  The mean 
 
 ```{r}
-S%*%out$a
+S%*%out$d
 ```
 is close to the true mean of $(2,1,1)'$.  The variance covaraiance matrix is
 

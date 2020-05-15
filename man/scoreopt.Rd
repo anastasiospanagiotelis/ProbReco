@@ -14,7 +14,7 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{S}{Matrix encoding linear constraints.}
 
-\item{Ginit}{Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.}
+\item{Ginit}{Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.}
 
 \item{control}{Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 
@@ -22,10 +22,10 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 }
 \value{
 Optimised reconciliation parameters.
-\item{a}{Translation vector for reconciliation.}
+\item{d}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGD.}
+\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
 \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
 }
 \description{

@@ -4,11 +4,11 @@
 \alias{scoreopt.control}
 \title{Tuning parameters for score optimisation by Stochastic Gradient Descent}
 \usage{
-scoreopt.control(alpha = 0.001, beta1 = 0.9, beta2 = 0.999,
+scoreopt.control(eta = 0.001, beta1 = 0.9, beta2 = 0.999,
   maxIter = 500, tol = 1e-04, epsilon = 1e-08)
 }
 \arguments{
-\item{alpha}{Learning rate. Deafult is 0.001}
+\item{eta}{Learning rate. Deafult is 0.001}
 
 \item{beta1}{Forgetting rate for mean. Default is 0.9.}
 

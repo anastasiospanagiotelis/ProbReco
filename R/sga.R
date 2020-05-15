@@ -8,8 +8,8 @@
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
-#' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @return Total score and gradient w.r.t G.
+#' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @return Total score and gradient w.r.t (d,G).
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total score.}
 #' @examples
@@ -71,7 +71,7 @@ total_score<-function(data,prob,S,Gvec){
 #' 
 #' @export
 #' @family ProbReco functions
-#' @param alpha Learning rate. Deafult is 0.001
+#' @param eta Learning rate. Deafult is 0.001
 #' @param beta1 Forgetting rate for mean. Default is 0.9.
 #' @param beta2 Forgetting rate for variance. Default is 0.999.
 #' @param maxIter Maximum number of iterations. Default is 500
@@ -83,7 +83,7 @@ total_score<-function(data,prob,S,Gvec){
 #' @references 
 #'   \insertAllCited{}
 
-scoreopt.control<-function(alpha = 0.001,
+scoreopt.control<-function(eta = 0.001,
                       beta1 = 0.9,
                       beta2 = 0.999,
                       maxIter = 500,
@@ -92,7 +92,7 @@ scoreopt.control<-function(alpha = 0.001,
   
   
   #Check parameter values are valid
-  if (alpha<=0) 
+  if (eta<=0) 
     stop("Learning rate (alpha) must be greater than 0.")
   if (beta1<=0 || beta1>=1) 
     stop("Forgetting rate of mean (beta1) should be between 0 and 1.")
@@ -107,7 +107,7 @@ scoreopt.control<-function(alpha = 0.001,
   
   
   #Collect in list
-  l<-list(alpha=alpha,
+  l<-list(eta=eta,
           beta1=beta1,
           beta2=beta2,
           maxIter=maxIter,
@@ -129,7 +129,7 @@ scoreopt.control<-function(alpha = 0.001,
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
-#' @param G Values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
+#' @param G Values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 
 checkinputs<-function(data,prob,S,G){
   #Checks on lengths of data and prob match
@@ -180,14 +180,14 @@ checkinputs<-function(data,prob,S,G){
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
-#' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
+#' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
 #' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @param trace Flag to keep details of SGD.  Default is FALSE
 #' @return Optimised reconciliation parameters.
-#' \item{a}{Translation vector for reconciliation.}
+#' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGD.}
+#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
 #' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
 #' @examples
 #' #Use purr library to setup
@@ -251,8 +251,8 @@ scoreopt<-function(data,
     v_bc<-v/(1-(beta2^i))
     
     #Update
-    Gvec<-Gvec-(alpha*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
-    dif<-abs((alpha*m_bc)/(sqrt(v_bc)+epsilon)) #Absolute change in Gvec 
+    Gvec<-Gvec-(eta*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
+    dif<-abs((eta*m_bc)/(sqrt(v_bc)+epsilon)) #Absolute change in Gvec 
     
     #Store if trace
     if(trace){
@@ -265,16 +265,16 @@ scoreopt<-function(data,
 
   }
   
-  a<-Gvec[1:mS] #Extract first m elements for translation.
+  d<-Gvec[1:mS] #Extract first m elements for translation.
   G<-matrix(Gvec[(mS+1):(mS*(nS+1))],mS,nS) #Extract remaining elements for G.
   
   if(trace){
     G_store<-G_store[,1:(i-1)]
     val_store<-val_store[1:(i-1)]
-    out<-list(a=a,G=G,val=val,Gvec_store=G_store,val_store=val_store)
+    out<-list(d=d,G=G,val=val,Gvec_store=G_store,val_store=val_store)
   }
   else{
-    out<-list(a=a,G=G,val=val)
+    out<-list(d=d,G=G,val=val)
   }
   
   return(out)

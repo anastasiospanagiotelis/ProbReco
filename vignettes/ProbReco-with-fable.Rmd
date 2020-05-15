@@ -210,7 +210,7 @@ all_fc_r<-map(data_windows[1:W],forecast_window_r)
 
 ```
 
-Note that the residuals are extracted from a data frame and converted to a matrix.  This is all done here so that it does not need to be repeated during each step of the SGA algorithm.
+Note that the residuals are extracted from a data frame and converted to a matrix.  This is all done here so that it does not need to be repeated during each step of the SGD algorithm.
 
 To construct the list of functions we adapt the `make_genfunc` to randomly choose vectors of residuals and add them to the forecast mean.
 
@@ -233,7 +233,7 @@ all_prob_ng<-map(all_fc_r,make_genfunc_ng)
 
 This approach will only work for one-step ahead forecasts since for multistep ahead forecasting in ARMA models a probabilistic forecast is not obtained by adding innovations to the forecast mean.  For multistep ahead forecasts the `generate` family of functions within `fable` can be used, although these are still under development for some models and can be slow.
 
-Finally the SGA can be run to find reconciliation weights.
+Finally the SGD can be run to find reconciliation weights.
 
 
 ```{r}

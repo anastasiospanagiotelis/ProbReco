@@ -5,7 +5,7 @@
 #' reconciliation weights that optimise total energy 
 #' score \insertCite{scores}{ProbReco} over the training 
 #' data.  The optimisation is carried out using the Adaptive Moments (Adam) variant 
-#' of Stochastic Gradient Ascent developed 
+#' of Stochastic Gradient Descent developed 
 #' by \insertCite{adam;textual}{ProbReco}.  Tuning parameters for this 
 #' optimisation can be 
 #' set using \code{\link[ProbReco]{scoreopt.control}}.  The gradients are found 

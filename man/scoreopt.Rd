@@ -2,7 +2,7 @@
 % Please edit documentation in R/sga.R
 \name{scoreopt}
 \alias{scoreopt}
-\title{Score optimisation by Stochastic Gradient Ascent}
+\title{Score optimisation by Stochastic Gradient Descent}
 \usage{
 scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list(), trace = F)
@@ -16,21 +16,21 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{Ginit}{Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.}
 
-\item{control}{Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details}
+\item{control}{Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 
-\item{trace}{Flag to keep details of SGA.  Default is FALSE}
+\item{trace}{Flag to keep details of SGD.  Default is FALSE}
 }
 \value{
 Optimised reconciliation parameters.
 \item{a}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGA.}
-\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGA.}
+\item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGD.}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
 }
 \description{
 Function find a reconciliation matrix that optimises total score 
-using training data.  Stochastic gradient ascent is used for optimisation
+using training data.  Stochastic gradient descent is used for optimisation
 with gradients found using automatic differentiation.
 }
 \examples{
@@ -42,7 +42,7 @@ S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
 #Set list of functions to generate 50 iterates from probabilistic forecast
 prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
-#Find weights by SGA (will take a few seconds)
+#Find weights by SGD (will take a few seconds)
 out<-scoreopt(data,prob,S)
 }
 \seealso{

@@ -62,9 +62,9 @@ total_score<-function(data,prob,S,Gvec){
   return(list(grad=grad,value=value))
 }
 
-#' @title Tuning parameters for score optimisation by Stochastic Gradient Ascent
+#' @title Tuning parameters for score optimisation by Stochastic Gradient Descent
 #'
-#' @description Function to set tuning parameters for stochastic gradient ascent used to
+#' @description Function to set tuning parameters for stochastic gradient descent used to
 #' find a reconciliation matrix that optimises total score.  The defaults are 
 #' those of \insertCite{adam;textual}{ProbReco} and more details on the tuning 
 #' parameters can be found therein.
@@ -169,10 +169,10 @@ checkinputs<-function(data,prob,S,G){
   
 }
 
-#' @title Score optimisation by Stochastic Gradient Ascent
+#' @title Score optimisation by Stochastic Gradient Descent
 #'
 #' @description Function find a reconciliation matrix that optimises total score 
-#' using training data.  Stochastic gradient ascent is used for optimisation
+#' using training data.  Stochastic gradient descent is used for optimisation
 #' with gradients found using automatic differentiation.
 #' 
 #' @export
@@ -181,14 +181,14 @@ checkinputs<-function(data,prob,S,G){
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param Ginit Initial values of reconciliation parameters \eqn{a} and \eqn{G} where \eqn{\tilde{y}=S(a+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{a}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
-#' @param control Tuning parameters for SGA. See \code{\link[ProbReco]{scoreopt.control}} for more details
-#' @param trace Flag to keep details of SGA.  Default is FALSE
+#' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @param trace Flag to keep details of SGD.  Default is FALSE
 #' @return Optimised reconciliation parameters.
 #' \item{a}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGA.}
-#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGA.}
+#' \item{Gvec_store}{A matrix of Gvec (a and G vectorised) where each column corresponds to an iterate of SGD.}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -198,7 +198,7 @@ checkinputs<-function(data,prob,S,G){
 #' data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
 #' #Set list of functions to generate 50 iterates from probabilistic forecast
 #' prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
-#' #Find weights by SGA (will take a few seconds)
+#' #Find weights by SGD (will take a few seconds)
 #' out<-scoreopt(data,prob,S)
 
 
@@ -215,7 +215,7 @@ scoreopt<-function(data,
   
   checkinputs(data,prob,S,Ginit) # Checks for errors in inputs  
   
-  #Initialise parameters of SGA
+  #Initialise parameters of SGD
   m<-0 #mean 
   v<-0 #variance
   i<-1 #iteration 
@@ -251,7 +251,7 @@ scoreopt<-function(data,
     v_bc<-v/(1-(beta2^i))
     
     #Update
-    Gvec<-Gvec+(alpha*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
+    Gvec<-Gvec-(alpha*m_bc)/(sqrt(v_bc)+epsilon) #Update Gvec
     dif<-abs((alpha*m_bc)/(sqrt(v_bc)+epsilon)) #Absolute change in Gvec 
     
     #Store if trace

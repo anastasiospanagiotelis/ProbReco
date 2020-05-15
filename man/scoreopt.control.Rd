@@ -2,7 +2,7 @@
 % Please edit documentation in R/sga.R
 \name{scoreopt.control}
 \alias{scoreopt.control}
-\title{Tuning parameters for score optimisation by Stochastic Gradient Ascent}
+\title{Tuning parameters for score optimisation by Stochastic Gradient Descent}
 \usage{
 scoreopt.control(alpha = 0.001, beta1 = 0.9, beta2 = 0.999,
   maxIter = 500, tol = 1e-04, epsilon = 1e-08)
@@ -21,7 +21,7 @@ scoreopt.control(alpha = 0.001, beta1 = 0.9, beta2 = 0.999,
 \item{epsilon}{Small constant added to denominator of step size. Default is 1e-8}
 }
 \description{
-Function to set tuning parameters for stochastic gradient ascent used to
+Function to set tuning parameters for stochastic gradient descent used to
 find a reconciliation matrix that optimises total score.  The defaults are 
 those of \insertCite{adam;textual}{ProbReco} and more details on the tuning 
 parameters can be found therein.

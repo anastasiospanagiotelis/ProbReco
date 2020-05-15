@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ## Background
 
-The `ProbReco` package carries out probabilistic forecast reconciliation via score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Ascent.
+The `ProbReco` package carries out probabilistic forecast reconciliation via score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Descent.
 
 ### Probabilistic Forecast Reconciliation
 
@@ -46,13 +46,13 @@ $$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
 
 where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy score given by
 
-$$\hat{K}_{t+h}=\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|-\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|\,,$$
+$$\hat{K}_{t+h}=Q^{-1}\left(\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{a}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|-\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|\right)\,,$$
 
-where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a positively oriented energy score, i.e. larger values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
+where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a negatively oriented energy score, i.e. smaller values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
 
 ### Optimisation
 
-A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Ascent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
+A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{a}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
 
 ## Setting up function inputs
 
@@ -143,7 +143,7 @@ out$grad
 out2$grad
 ```
 
-The function `scoreopt` maximises the loss function using stochastic gradient ascent.
+The function `scoreopt` maximises the loss function using stochastic gradient descent.
 
 ```{r}
 out<-scoreopt(data,prob,S)

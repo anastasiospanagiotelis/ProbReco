@@ -54,7 +54,7 @@ struct scoretemp {
       term2 += dif2.norm(); // Update sum
     }
     
-    return (((0.5 * term1 ) - term2) / Q ); // Energy score
+    return ( ( term2 - (0.5 * term1 ) ) / Q ); // Energy score
   }
 };
 

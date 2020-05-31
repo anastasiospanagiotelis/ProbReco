@@ -57,6 +57,11 @@ total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
       noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
       xs[[i]][,dif==0]<-xs[[i]][,dif==0] + noise_sd*rnorm(nrow(xs[[i]])) #Add noise
     }
+    dif<-apply((x[[i]]-data[[i]])^2,2,sum) #Compute norm of differences
+    if(any(dif==0)){ #If any x and xs are identical
+      noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
+      x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
+    }
   }
   
   
@@ -312,3 +317,144 @@ scoreopt<-function(data,
   return(out)
   
 }
+
+
+#' @title In-Sample Score optimisation by Stochastic Gradient Descent
+#'
+#' @description Function find a reconciliation matrix that optimises total score 
+#' using training data.  Stochastic gradient descent is used for optimisation
+#' with gradients found using automatic differentiation. This function differs 
+#' from \code{\link[ProbReco]{scoreopt.control}} in two main ways.  First,
+#' formulation of base probabilistic forecasts is carried out from one of four 
+#' options depending on whether dependence and/or Gaussianity is assumed.  Second,
+#' the optimistation is based on in-sample predictions rather than a rolling window
+#' of out-of sample forecasts.  For full flexibility 
+#' use \code{\link[ProbReco]{scoreopt.control}}
+#' 
+#' @export
+#' @family ProbReco functions
+#' @param y Matrix of data, each column responds to an observation, each row corresponds to a variable.
+#' @param yhat Matrix of predicted values, each column responds to an observation, each row corresponds to a variable.
+#' @param S Matrix encoding linear constraints.
+#' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
+#' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
+#' @param basedep Should base distributions be assumed to be dependent (joint) or independent?  Default is joint.
+#' @param basedist Should base distributions be assumed to be Gaussian or bootstrapped?  Default is Gaussian.
+#' @param Q Number of Monte Carlo iterations used to estimate score
+#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
+#' @param trace Flag to keep details of SGD.  Default is FALSE
+#' @return Optimised reconciliation parameters.
+#' \item{d}{Translation vector for reconciliation.}
+#' \item{G}{Reconciliation matrix (G).}
+#' \item{val}{The estimated optimal total score.}
+#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
+
+#' @examples
+#' #Define S matrix
+#' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
+#' #Set data (only 10 training observations used for speed)
+#' y<-S%*%(matrix(rnorm(20),2,10)+1)
+#' #Set point forecasts
+#' yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
+#' #Find weights by SGD (will take a few seconds)
+#' out<-inscoreopt(y,yhat,S)
+
+
+inscoreopt<-function(y,
+                   yhat,
+                   S,
+                   Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
+                   control=list(),
+                   basedep='joint',
+                   basedist='gaussian',
+                   Q=500,
+                   score=list(score="energy",alpha=1),
+                   trace=F){
+  if (!(basedep%in%c('independent','joint'))){
+    stop('basedep must be either independent or joint')
+  }
+  if (!(basedist%in%c('gaussian','bootstrap'))){
+    stop('basedep must be either gaussian or bootstrap')
+  }
+  
+  #Compute Residuals
+  r<-y-yhat
+  
+  #Compute n and m
+  n<-nrow(S)
+  m<-ncol(S)
+  
+  #If Gaussian precompute variance covariance matrix
+  if(basedist=='gaussian'){
+    if(basedep=='independent'){
+      Sigma<-apply(r,1,sd)
+    }
+    if(basedep=='joint'){
+      Sigma<-cov(t(r))      
+    }
+  }
+  
+  #Set up functions
+  if ((basedist=='gaussian')&&(basedep=='independent')){
+    #Independent Gaussian
+    make_genfunc<-function(i){
+      f<-function(){
+        fc_mean<-yhat[,i]
+        out<-matrix(rnorm((Q*n),mean=fc_mean,sd=Sigma),n,Q)
+        return(out)
+      }
+      return(f)
+    }
+  }else if((basedist=='gaussian')&&(basedep=='joint')){
+    #Joint Gaussian (using sample estimate of covariance)
+    make_genfunc<-function(i){
+      f<-function(){
+        fc_mean<-yhat[,i]
+        out<-t(rmvnorm(Q,fc_mean,Sigma))
+        return(out)
+      }
+      return(f)
+    }
+  }else if((basedist=='bootstrap')&&(basedep=='independent')){
+    #Bootstrapping residuals ignoring dependence
+    make_genfunc<-function(i){
+      f<-function(){
+        fc_mean<-yhat[,i]
+        out<-matrix(0,n,Q)
+        for (j in 1:n){
+          ind<-sample(1:ncol(r),Q,replace=T)
+          out[j,]<-r[j,ind]+fc_mean[j]
+        }
+        return(out)
+      }
+      return(f)
+    }
+  }else if((basedist=='bootstrap')&&(basedep=='joint')){
+    #Bootstrapping residuals jointly
+    make_genfunc<-function(i){
+      f<-function(){
+        fc_mean<-yhat[,i]
+        ind<-sample(1:ncol(r),Q,replace=T)
+        out<-r[,ind]+fc_mean
+        return(out)
+      }
+      return(f)
+    }
+  }
+  
+  prob<-purrr::map(1:ncol(r),make_genfunc)
+
+  #Make y into a list
+  
+  data<-purrr::map(1:ncol(y),~y[,.x])
+  
+  opt<-scoreopt(data = data,
+                prob = prob,
+                S=S,
+                Ginit = Ginit,
+                control=control,
+                score=score,
+                trace=trace)
+  return(opt)
+} 

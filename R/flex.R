@@ -151,7 +151,7 @@ checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
     stop('score must be a list with named elements alpha and score')
   }
   
-  supported_scores<-c('energy')
+  supported_scores<-c('energy','variogram')
   
   if(!(score$score%in%supported_scores)){
     stop(paste('score must match a score supported by the package.  Currently these are:',paste(supported_scores,collapse = ',')))

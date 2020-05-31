@@ -65,12 +65,31 @@ struct scoretemp {
         term2 += stan::math::pow(dif2.norm(),alpha_); // Update sum
         
       }
-      if (score_==2){
-        //Variogram to go here
-        out = 0;
-      }
       out = ( term2 - (0.5 * term1 ) ) / Q ;
     }
+    if (score_==2){
+      //Variogram to go here
+      out = 0;
+      T dif;
+      T term1 = 0 ;
+      T term2 = 0 ;
+      for (int i=0; i<= (n -1); i++){
+        for(int j=(i+1);j<n; j++){
+          dif = stan::math::abs( y_(i) - y_(j) ); //Difference in y
+          term1 = stan::math::pow( dif, alpha_ );
+          term2 = 0;
+          for (int q=0; q<Q; q++){
+            dif = stan::math::abs( d(i) - d(j) + xr(i,q) - xrs(j,q) );
+            term2 += stan::math::pow( dif, alpha_ );
+          }
+          term2 = term2 /Q; //Divide by sample size
+          out += stan::math::pow(( term1 - term2 ),2);
+        }
+      }
+      out=2*out;
+  
+    }
+    
     return (out); // Energy score
   }
 };

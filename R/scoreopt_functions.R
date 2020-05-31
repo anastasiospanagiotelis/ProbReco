@@ -55,9 +55,9 @@ total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
     dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
     if(any(dif==0)){ #If any x and xs are identical
       noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
-      xs[[i]][,dif==0]<-xs[[i]][,dif==0] + noise_sd*rnorm(nrow(xs[[i]])) #Add noise
+      x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
     }
-    dif<-apply((x[[i]]-data[[i]])^2,2,sum) #Compute norm of differences
+    dif<-apply((x[[i]]-matrix(data[[i]],nrow(x[[i]]),ncol(x[[i]])))^2,2,sum) #Compute norm of differences
     if(any(dif==0)){ #If any x and xs are identical
       noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
       x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise

@@ -44,10 +44,13 @@ struct scoretemp {
     
     Matrix<T, Dynamic, 1> d = stan::math::multiply(S_,g1);  // Translation
     
-    T dif1norm; // dif1norm
-    T term1 = 0; // Intialise terms for cumulative sum
-    T term2 = 0; // Intialise terms for sumulative sum    
+    T out; // output
     if (score_==1){
+      
+      T term1 = 0; // Intialise terms for cumulative sum
+      T term2 = 0; // Intialise terms for sumulative sum    
+      
+      
       Matrix<T, Dynamic, 1> yd = y_-d;  // y-d
       
       Matrix<T, Dynamic, 1> dif1; // Initialise vectors
@@ -55,14 +58,20 @@ struct scoretemp {
       
 
       
-      for (int j=0; j<Q; j++){
-        dif1 = xr.col(j) - xrs.col(j); // Difference for first term (translation cancels)
-        dif2 = (yd-xr.col(j)); // Difference for second term (translation cancels)
+      for (int q=0; q<Q; q++){
+        dif1 = xr.col(q) - xrs.col(q); // Difference for first term (translation cancels)
+        dif2 = (yd-xr.col(q)); // Difference for second term (translation cancels)
         term1 += stan::math::pow(dif1.norm(),alpha_); // Update sum
         term2 += stan::math::pow(dif2.norm(),alpha_); // Update sum
+        
       }
+      if (score_==2){
+        //Variogram to go here
+        out = 0;
+      }
+      out = ( term2 - (0.5 * term1 ) ) / Q ;
     }
-    return ( ( term2 - (0.5 * term1 ) ) / Q ); // Energy score
+    return (out); // Energy score
   }
 };
 

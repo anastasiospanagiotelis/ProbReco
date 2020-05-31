@@ -36,7 +36,10 @@ total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
     scorecode<-1
     alpha<-score$alpha
   }
-  
+  if(score$score=='variogram'){
+    scorecode<-2
+    alpha<-score$alpha
+  }  
 
   
   #Draws from probabilistic forecast

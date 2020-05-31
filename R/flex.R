@@ -54,7 +54,7 @@ total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
   for(i in 1:length(x)){
     dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
     if(any(dif==0)){ #If any x and xs are identical
-      noise_sd<-1e-8*(apply(x[[i]],1,sd)%>%min) #Compute a sd for a small amount of noise
+      noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
       xs[[i]][,dif==0]<-xs[[i]][,dif==0] + noise_sd*rnorm(nrow(xs[[i]])) #Add noise
     }
   }
@@ -251,10 +251,12 @@ scoreopt<-function(data,
   i<-1 #iteration 
   dif<-1E15 #stopping criterion
   
+  maxIter<-tol<-beta1<-beta2<-eta<-epsilon<-NULL
+  
   #Controls
   control <- do.call("scoreopt.control", control)
   
-  list2env(control,.GlobalEnv) #Pulls everything from the list into the global environment
+  list2env(control,environment()) #Pulls everything from the list into the function environment
   
   #Initialise Gvec
   Gvec<-Ginit

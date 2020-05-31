@@ -11,6 +11,15 @@
 #' set using \code{\link[ProbReco]{scoreopt.control}}.  The gradients are found 
 #' using the automatic differentiation libraries of the Stan 
 #' project \insertCite{stan}{ProbReco}.  
+#' 
+#' A version of the function that allows for simpler inputs is provided 
+#' by \code{\link[ProbReco]{inscoreopt}}.  Rather than lists of realisations and 
+#' functions a matrix of data and a matrix of (point) predictions are the main 
+#' arguments.  This function is less general 
+#' than \code{\link[ProbReco]{inscoreopt}} in two ways.  First, there are only a 
+#' limited range of options for producing base forecasts (either from Gaussian
+#' distributions or bootstrapping).  Second, the scores are evaluated 
+#' using in-sample predictions rather than genuine forecasts. 
 #' @keywords internal
 #' @references 
 #'   \insertAllCited{}

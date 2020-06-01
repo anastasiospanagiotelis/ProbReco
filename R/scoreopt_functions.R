@@ -9,7 +9,9 @@
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
+#' @param scorecode Code that indicates score to be used.  This is set to 1 for the energy score and 2 for the variogram score.  Default is 1 (energy score)
+#' @param alpha An additional parameter used for scoring rule.  Default is 1 (power used in energy score).
+#' @param matches A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.
 #' @return Total score and gradient w.r.t (d,G).
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total score.}
@@ -27,19 +29,8 @@
 #' #Compute total score
 #' out<-total_score(data,prob,S,Gvec)
 
-total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
+total_score<-function(data,prob,S,Gvec,scorecode=1,alpha=1,matches=F){
 
-
-  
-  #Extract info about score
-  if(score$score=='energy'){
-    scorecode<-1
-    alpha<-score$alpha
-  }
-  if(score$score=='variogram'){
-    scorecode<-2
-    alpha<-score$alpha
-  }  
 
   
   #Draws from probabilistic forecast
@@ -51,20 +42,21 @@ total_score<-function(data,prob,S,Gvec,score=list(score="energy",alpha=1)){
   # AD in Stan will return a NA gradient if any element of x and xs is repeated
   # Rather than debug stan, a work around is to add a tiny bit of noise when this occurs
   # Note this can happen when the probabilisitic forecast is based on sampling residuals
-  for(i in 1:length(x)){
-    dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
-    if(any(dif==0)){ #If any x and xs are identical
-      noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
-      x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
-    }
-    dif<-apply((x[[i]]-matrix(data[[i]],nrow(x[[i]]),ncol(x[[i]])))^2,2,sum) #Compute norm of differences
-    if(any(dif==0)){ #If any x and xs are identical
-      noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
-      x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
-    }
+  if(matches){
+    for(i in 1:length(x)){
+      dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
+      if(any(dif==0)){ #If any x and xs are identical
+        noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
+        x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
+      }
+      dif<-apply((x[[i]]-matrix(data[[i]],nrow(x[[i]]),ncol(x[[i]])))^2,2,sum) #Compute norm of differences
+      if(any(dif==0)){ #If any x and xs are identical
+        noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
+        x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
+      }
+    }  
   }
-  
-  
+
   #Find score contributions
   all<-purrr::pmap(list(xin=x,xsin=xs,yin=data),
                    .score,Sin=S,Gin=Gvec,scorecode,alpha)
@@ -153,7 +145,7 @@ scoreopt.control<-function(eta = 0.001,
 checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
   #Checks on lengths of data and prob match
   if(!is.list(score)||!identical(sort(names(score)),c('alpha','score'))){
-    stop('score must be a list with named elements alpha and score')
+    stop('score must be a list with named elements alpha and score, defaults will be used')
   }
   
   supported_scores<-c('energy','variogram')
@@ -217,6 +209,7 @@ checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
 #' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @param trace Flag to keep details of SGD.  Default is FALSE
+#' @param matches A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.
 #' @return Optimised reconciliation parameters.
 #' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
@@ -242,7 +235,8 @@ scoreopt<-function(data,
                 Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list(),
                 score=list(score="energy",alpha=1),
-                trace=F){
+                trace=F,
+                matches=F){
   
   #Get number of rows and columns for S
   nS<-nrow(S)
@@ -258,10 +252,24 @@ scoreopt<-function(data,
   
   maxIter<-tol<-beta1<-beta2<-eta<-epsilon<-NULL
   
+  #Extract information about score
+  
+  #Extract info about score
+  if(score$score=='energy'){
+    scorecode<-1
+    alpha<-score$alpha
+  }
+  if(score$score=='variogram'){
+    scorecode<-2
+    alpha<-score$alpha
+  }  
+  
   #Controls
   control <- do.call("scoreopt.control", control)
   
   list2env(control,environment()) #Pulls everything from the list into the function environment
+  
+  
   
   #Initialise Gvec
   Gvec<-Ginit
@@ -275,7 +283,13 @@ scoreopt<-function(data,
 
   while((i<=maxIter)&&(any(dif>tol))){
     #Find Gradient
-    gval<-total_score(data = data, prob = prob,S = S,Gvec = Gvec,score=score)
+    gval<-total_score(data = data, 
+                      prob = prob,
+                      S = S,
+                      Gvec = Gvec,
+                      scorecode=scorecode,
+                      alpha=alpha,
+                      matches=matches)
     g<-gval$grad
     val<-gval$value
     
@@ -449,12 +463,16 @@ inscoreopt<-function(y,
   
   data<-purrr::map(1:ncol(y),~y[,.x])
   
+  #Set flag for matches
+  matches<-(basedist=='bootstrap')
+  
   opt<-scoreopt(data = data,
                 prob = prob,
                 S=S,
                 Ginit = Ginit,
                 control=control,
                 score=score,
-                trace=trace)
+                trace=trace,
+                matches=matches)
   return(opt)
 } 

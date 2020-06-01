@@ -6,7 +6,7 @@
 \usage{
 scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list(), score = list(score = "energy",
-  alpha = 1), trace = F)
+  alpha = 1), trace = F, matches = F)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -22,6 +22,8 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 \item{score}{Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
 
 \item{trace}{Flag to keep details of SGD.  Default is FALSE}
+
+\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T.}
 }
 \value{
 Optimised reconciliation parameters.

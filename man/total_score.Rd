@@ -4,8 +4,8 @@
 \alias{total_score}
 \title{Total score (and gradient) for reconciled forecast}
 \usage{
-total_score(data, prob, S, Gvec, score = list(score = "energy", alpha =
-  1))
+total_score(data, prob, S, Gvec, scorecode = 1, alpha = 1,
+  matches = F)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -16,7 +16,11 @@ total_score(data, prob, S, Gvec, score = list(score = "energy", alpha =
 
 \item{Gvec}{Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.}
 
-\item{score}{Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
+\item{scorecode}{Code that indicates score to be used.  This is set to 1 for the energy score and 2 for the variogram score.  Default is 1 (energy score)}
+
+\item{alpha}{An additional parameter used for scoring rule.  Default is 1 (power used in energy score).}
+
+\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T.}
 }
 \value{
 Total score and gradient w.r.t (d,G).

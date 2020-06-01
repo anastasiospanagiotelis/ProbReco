@@ -233,11 +233,11 @@ all_prob_ng<-map(all_fc_r,make_genfunc_ng)
 
 This approach will only work for one-step ahead forecasts since for multistep ahead forecasting in ARMA models a probabilistic forecast is not obtained by adding innovations to the forecast mean.  For multistep ahead forecasts the `generate` family of functions within `fable` can be used, although these are still under development for some models and can be slow.
 
-Finally the SGD can be run to find reconciliation weights.
+Finally the SGD can be run to find reconciliation weights.  Note that here the flag `matches` must be set to true.  This is required since it is possible for samples drawn from the base distribution to be exactly equal.
 
 
 ```{r}
-  opt_ng<-scoreopt(all_y,all_prob_ng,S)
+  opt_ng<-scoreopt(all_y,all_prob_ng,S,matches = T)
   opt_ng$d
   opt_ng$G
   

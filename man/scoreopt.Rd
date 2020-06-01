@@ -23,7 +23,7 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{trace}{Flag to keep details of SGD.  Default is FALSE}
 
-\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T.}
+\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.}
 }
 \value{
 Optimised reconciliation parameters.

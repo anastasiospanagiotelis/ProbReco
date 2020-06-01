@@ -20,7 +20,7 @@ total_score(data, prob, S, Gvec, scorecode = 1, alpha = 1,
 
 \item{alpha}{An additional parameter used for scoring rule.  Default is 1 (power used in energy score).}
 
-\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.}
+\item{matches}{A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.}
 }
 \value{
 Total score and gradient w.r.t (d,G).

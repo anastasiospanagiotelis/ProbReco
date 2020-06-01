@@ -87,7 +87,7 @@ forecast_window <- function(data_w){
 
 ```
 
-Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  Here an ARMA(1,1) is be fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.  The `forecast` function is used to obtain the forecast mean and variance for each variable.  Only 1 step ahead forecasts are obtained for this example.  The variables are arranged in the correct order and then the forecast mean and variance are extracted.  Here, dependence is completely ignored, i.e. the base forecasts are indepenedent.
+Using the `fable` package requires some manipulation of the data.  So first, the data frame is converted to long format using `pivot_longer`. The data must then be converted to a `tsibble`.  Finally, the `model` function can be used from fable.  Here an ARMA(1,1) is fit to each data set.  Note that this is only for illustrative purposes, and there will be some misspecification.  In practice the order of the ARMA can be chosen automatically.  The `forecast` function is used to obtain the forecast mean and variance for each variable.  Only 1 step ahead forecasts are obtained for this example.  The variables are arranged in the correct order and then the forecast mean and variance are extracted.  Here, dependence is completely ignored, i.e. the base forecasts are indepenedent.
 
 To fit the model and obtain the base forecast mean and variance for each window, the `map` function can be used.  Here we will only fit models to the first 10 windows meaning that t=501 to t=510 will constitute the training data for learning the reconciliation weights.
 
@@ -233,7 +233,7 @@ all_prob_ng<-map(all_fc_r,make_genfunc_ng)
 
 This approach will only work for one-step ahead forecasts since for multistep ahead forecasting in ARMA models a probabilistic forecast is not obtained by adding innovations to the forecast mean.  For multistep ahead forecasts the `generate` family of functions within `fable` can be used, although these are still under development for some models and can be slow.
 
-Finally the SGD can be run to find reconciliation weights.  Note that here the flag `matches` must be set to true.  This is required since it is possible for samples drawn from the base distribution to be exactly equal.
+Finally the SGD can be run to find reconciliation weights.  Note that here the flag `matches` must be set to true.  This is required since it is possible for samples drawn from the base distribution by bootstrapping to be exactly equal.  When this occurs the automatic differentiation returns NA values, by setting `matches=T` a workaround to this implemented.
 
 
 ```{r}
@@ -244,4 +244,4 @@ Finally the SGD can be run to find reconciliation weights.  Note that here the f
   opt_ng$val
 ```
 
-The total score is lower that for the case of reconciling base forecasts. This probably indicates the importance of accounting for dependence, however an important caveat to such a conclusion is that the sample sizes are very small.
+The total score should be lower than for the case of reconciling base forecasts (although may not be due to the small sample sizes). This probably indicates the importance of accounting for dependence, however an important caveat to such a conclusion is that the sample sizes are very small.

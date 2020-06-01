@@ -2,7 +2,7 @@
 % Please edit documentation in R/scoreopt_functions.R
 \name{inscoreopt}
 \alias{inscoreopt}
-\title{In-Sample Score optimisation by Stochastic Gradient Descent}
+\title{In-Sample Score Optimisation by Stochastic Gradient Descent}
 \usage{
 inscoreopt(y, yhat, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list(), basedep = "joint",
@@ -26,7 +26,7 @@ inscoreopt(y, yhat, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{Q}{Number of Monte Carlo iterations used to estimate score}
 
-\item{score}{Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
+\item{score}{Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
 
 \item{trace}{Flag to keep details of SGD.  Default is FALSE}
 }
@@ -35,26 +35,26 @@ Optimised reconciliation parameters.
 \item{d}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
-\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
+\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
 }
 \description{
-Function find a reconciliation matrix that optimises total score 
+Function to find a reconciliation matrix that optimises total score 
 using training data.  Stochastic gradient descent is used for optimisation
 with gradients found using automatic differentiation. This function differs 
-from \code{\link[ProbReco]{scoreopt.control}} in two main ways.  First,
+from \code{\link[ProbReco]{scoreopt}} in two main ways.  First,
 formulation of base probabilistic forecasts is carried out from one of four 
 options depending on whether dependence and/or Gaussianity is assumed.  Second,
 the optimistation is based on in-sample predictions rather than a rolling window
-of out-of sample forecasts.  For full flexibility 
-use \code{\link[ProbReco]{scoreopt.control}}
+of out-of sample forecasts.  For more flexibility 
+use \code{\link[ProbReco]{scoreopt}}.
 }
 \examples{
 #Define S matrix
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #Set data (only 10 training observations used for speed)
 y<-S\%*\%(matrix(rnorm(20),2,10)+1)
-#Set point forecasts
+#Set point forecasts (chosen randomly from (0,1))
 yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
 #Find weights by SGD (will take a few seconds)
 out<-inscoreopt(y,yhat,S)

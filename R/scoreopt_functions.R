@@ -11,7 +11,7 @@
 #' @param Gvec Reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
 #' @param scorecode Code that indicates score to be used.  This is set to 1 for the energy score and 2 for the variogram score.  Default is 1 (energy score)
 #' @param alpha An additional parameter used for scoring rule.  Default is 1 (power used in energy score).
-#' @param matches A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.
+#' @param matches A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.
 #' @return Total score and gradient w.r.t (d,G).
 #' \item{grad}{The estimate of the gradient.}
 #' \item{value}{The estimated total score.}
@@ -140,7 +140,7 @@ scoreopt.control<-function(eta = 0.001,
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
 #' @param S Matrix encoding linear constraints.
 #' @param G Values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order.
-#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
+#' @param score Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 
 checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
   #Checks on lengths of data and prob match
@@ -207,15 +207,15 @@ checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
 #' @param S Matrix encoding linear constraints.
 #' @param Ginit Initial values of reconciliation parameters \eqn{d} and \eqn{G} where \eqn{\tilde{y}=S(d+G\hat{y})}.  The first \eqn{m} elements correspond to translation vector \eqn{d}, while the remaining elements correspond to the matrix \eqn{G} where the elements are filled in column-major order. Default is least squares.
 #' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
-#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
+#' @param score Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @param trace Flag to keep details of SGD.  Default is FALSE
-#' @param matches A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.
+#' @param matches A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.
 #' @return Optimised reconciliation parameters.
 #' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
-#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
+#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -333,17 +333,17 @@ scoreopt<-function(data,
 }
 
 
-#' @title In-Sample Score optimisation by Stochastic Gradient Descent
+#' @title In-Sample Score Optimisation by Stochastic Gradient Descent
 #'
-#' @description Function find a reconciliation matrix that optimises total score 
+#' @description Function to find a reconciliation matrix that optimises total score 
 #' using training data.  Stochastic gradient descent is used for optimisation
 #' with gradients found using automatic differentiation. This function differs 
-#' from \code{\link[ProbReco]{scoreopt.control}} in two main ways.  First,
+#' from \code{\link[ProbReco]{scoreopt}} in two main ways.  First,
 #' formulation of base probabilistic forecasts is carried out from one of four 
 #' options depending on whether dependence and/or Gaussianity is assumed.  Second,
 #' the optimistation is based on in-sample predictions rather than a rolling window
-#' of out-of sample forecasts.  For full flexibility 
-#' use \code{\link[ProbReco]{scoreopt.control}}
+#' of out-of sample forecasts.  For more flexibility 
+#' use \code{\link[ProbReco]{scoreopt}}.
 #' 
 #' @export
 #' @family ProbReco functions
@@ -355,21 +355,21 @@ scoreopt<-function(data,
 #' @param basedep Should base distributions be assumed to be dependent (joint) or independent?  Default is joint.
 #' @param basedist Should base distributions be assumed to be Gaussian or bootstrapped?  Default is Gaussian.
 #' @param Q Number of Monte Carlo iterations used to estimate score
-#' @param score Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
+#' @param score Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @param trace Flag to keep details of SGD.  Default is FALSE
 #' @return Optimised reconciliation parameters.
 #' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
-#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
+#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
 
 #' @examples
 #' #Define S matrix
 #' S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #' #Set data (only 10 training observations used for speed)
 #' y<-S%*%(matrix(rnorm(20),2,10)+1)
-#' #Set point forecasts
+#' #Set point forecasts (chosen randomly from (0,1))
 #' yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
 #' #Find weights by SGD (will take a few seconds)
 #' out<-inscoreopt(y,yhat,S)

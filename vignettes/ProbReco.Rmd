@@ -38,17 +38,22 @@ $$
 $$
 where $\boldsymbol{S}$ is an $n\times m$ matrix whose columns span $\mathfrak{s}$.  If $\hat{\boldsymbol{y}}_{t+h|t}$ is sampled from the base forecast then $\tilde{\boldsymbol{y}}_{t+h|t}$ will be sampled from the reconciled forecast.  The objective of probabilistic forecast reconciliation is to find values of $\boldsymbol{G}$ and $\boldsymbol{d}$ that are optimal.
 
-### Energy Score
+### Scoring Rules
 
-Scoring rules are used to measure the quality of probabilistic forecasts.  While the package will eventually support a variety of scores, the only loss function implemented in the package is the total energy score (with $alpha=1$) given by
+Scoring rules are used to measure the quality of probabilistic forecasts.  The default loss function used by the package is the total energy score given by
 
 $$L=\sum\limits_{t\in\mathcal{T}}\hat{K}_{t+h}$$
 
 where $\mathcal{T}$ is a training set and $K_{t+h}$ is an estimate for energy score given by
 
-$$\hat{K}_{t+h}=Q^{-1}\left(\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|-\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|\right)\,,$$
+$$\hat{K}_{t+h}=Q^{-1}\left(\sum\limits_{q=1}^Q\left|\left|\boldsymbol{y}_{t+h}-\boldsymbol{S}\left(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t}\right)\right|\right|^\alpha-\frac{1}{2}\sum\limits_{q=1}^Q\left|\left|\boldsymbol{SG}\left(\hat{\boldsymbol{y}}^{[q]}_{t+h|t}-\hat{\boldsymbol{y}}^{[q]*}_{t+h|t}\right)\right|\right|^\alpha\right)\,,$$
 
-where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution and $||.||$ is the $L_2$ norm.  Note that this representation is a negatively oriented energy score, i.e. smaller values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
+where $\hat{\boldsymbol{y}}^{[1]}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]}_{t+h|t}$ and $\hat{\boldsymbol{y}}^{[1]*}_{t+h|t},\ldots,\hat{\boldsymbol{y}}^{[Q]*}_{t+h|t}$ are independent copies drawn from the base forecast distribution, $||.||$ is the $L_2$ norm and $\alpha\in(0,2]$ with $\alpha=1$ by default.  Note that this representation is a negatively oriented energy score, i.e. smaller values of the score indicate more accurate forecasts.  For more on scoring rules see [@scores].
+
+The variogram score [@variogram] is also implemented in the package and is given by
+
+$$\hat{K}_{t+h}=\sum\limits_{i=1}^n\sum\limits_{j=1}^n\left(\left|\left|y_{i,t+h}-y_{j,t+h}\right|\right|^\alpha-Q^{-1}\sum\limits_{q=1}^Q\left|\left|\tilde{y}^{[q]}_{i,t+h|t}-\tilde{y}^{[q]*}_{j,t+h|t}\right|\right|^\alpha\right)\,,$$
+where $\tilde{\boldsymbol{y}}^{[q]}_{t+h|t}=\boldsymbol{S}(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]}_{t+h|t})$, $\tilde{\boldsymbol{y}}^{[q]*}_{t+h|t}=\boldsymbol{S}(\boldsymbol{d}+\boldsymbol{G}\hat{\boldsymbol{y}}^{[q]*}_{t+h|t})$ and $\alpha=1$ by default (but can be changed).
 
 ### Optimisation
 
@@ -88,13 +93,13 @@ data[[1]]
 data[[5]]
 ```
 
-This form of storing data is unconvential but facilitated the use of `purrr` style functions that are used internally in the package.  
+This form of storing data is unconvential but facilitates the use of `purrr` style functions that are used internally in the package.  
 
 ### The `prob` argument
 
 The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
-Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stored these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map` function.
+Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stores these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map` function.
 
 ```{r}
 #Function
@@ -106,7 +111,7 @@ prob[[5]]
 
 ### The `Gvec` and `Ginit` argument
 
-The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{d}$.  The remaining elements are the elements of $\boldsymbol{G}$ vecorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
+The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{d}$.  The remaining elements are the elements of $\boldsymbol{G}$ vectorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
 
 ```{r}
 Gvec<-runif(8)
@@ -125,7 +130,7 @@ An error will be thrown if an input is incorrectly set up.
 
 ## The `total_score` and `scoreopt` functions
 
-The function `tota_score` provides an estimate of the total score and its gradient.  The gradient is evaluated by algorithmic differentiation.
+The function `total_score` provides an estimate of the total score and its gradient.  The gradient is evaluated by algorithmic differentiation.
 
 ```{r}
 out<-total_score(data,prob,S,Gvec)

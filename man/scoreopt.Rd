@@ -19,19 +19,19 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{control}{Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 
-\item{score}{Score to be used.  This must be a list two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
+\item{score}{Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
 
 \item{trace}{Flag to keep details of SGD.  Default is FALSE}
 
-\item{matches}{A flag that checks for exact matches between samples from y.  This causes a bug in automatic differentiation.  For approaches that rely on bootstrapping set to T, but this will slow down code.}
+\item{matches}{A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.}
 }
 \value{
 Optimised reconciliation parameters.
 \item{d}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD.}
-\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD.}
+\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
 }
 \description{
 Function find a reconciliation matrix that optimises total score 

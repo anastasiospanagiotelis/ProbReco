@@ -6,15 +6,16 @@
 \alias{ProbReco-package}
 \title{ProbReco: Score Optimal Probabilistic Forecast Reconciliation}
 \description{
-Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Ascent with automatically differentiated gradients.
+Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Descent with automatically differentiated gradients.
 }
 \details{
 This package carries out probabilistic forecast reconciliation via score 
 optimisation.  Given incoherent (base) probabilistic forecasts formed over a 
 training data set, the function \code{\link[ProbReco]{scoreopt}} finds linear 
-reconciliation weights that optimise total energy 
+reconciliation weights that optimise total 
 score \insertCite{scores}{ProbReco} over the training 
-data.  The optimisation is carried out using the Adaptive Moments (Adam) variant 
+data.  Currently the energy score and variogram score are implemented.  The 
+optimisation is carried out using the Adaptive Moments (Adam) variant 
 of Stochastic Gradient Descent developed 
 by \insertCite{adam;textual}{ProbReco}.  Tuning parameters for this 
 optimisation can be 
@@ -23,10 +24,11 @@ using the automatic differentiation libraries of the Stan
 project \insertCite{stan}{ProbReco}.  
 
 A version of the function that allows for simpler inputs is provided 
-by \code{\link[ProbReco]{inscoreopt}}.  Rather than lists of realisations and 
-functions a matrix of data and a matrix of (point) predictions are the main 
+by \code{\link[ProbReco]{inscoreopt}}.  Rather than using arguments that are 
+lists of realisations and lists of 
+functions, a matrix of data and a matrix of (point) predictions are the main 
 arguments.  This function is less general 
-than \code{\link[ProbReco]{inscoreopt}} in two ways.  First, there are only a 
+than \code{\link[ProbReco]{scoreopt}} in two ways.  First, there are only a 
 limited range of options for producing base forecasts (either from Gaussian
 distributions or bootstrapping).  Second, the scores are evaluated 
 using in-sample predictions rather than genuine forecasts.

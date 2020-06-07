@@ -145,7 +145,7 @@ scoreopt.control<-function(eta = 0.001,
 checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
   #Checks on lengths of data and prob match
   if(!is.list(score)||!identical(sort(names(score)),c('alpha','score'))){
-    stop('score must be a list with named elements alpha and score, defaults will be used')
+    stop('score must be a list with named elements alpha and score')
   }
   
   supported_scores<-c('energy','variogram')

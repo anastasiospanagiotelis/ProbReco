@@ -45,14 +45,14 @@ total_score<-function(data,prob,S,Gvec,scorecode=1,alpha=1,matches=F){
   if(matches){
     for(i in 1:length(x)){
       dif<-apply((x[[i]]-xs[[i]])^2,2,sum) #Compute norm of differences
-      if(any(dif==0)){ #If any x and xs are identical
-        noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
-        x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
+      if(any(dif<1e-15)){ #If any x and xs are identical
+        noise_sd<-1e-8*(median(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
+        x[[i]][,(dif<1e-15)]<-x[[i]][,(dif<1e-15)] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
       }
       dif<-apply((x[[i]]-matrix(data[[i]],nrow(x[[i]]),ncol(x[[i]])))^2,2,sum) #Compute norm of differences
-      if(any(dif==0)){ #If any x and xs are identical
-        noise_sd<-1e-8*(min(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
-        x[[i]][,dif==0]<-x[[i]][,dif==0] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
+      if(any(dif<1e-15)){ #If any y and x are identical
+        noise_sd<-1e-8*(median(apply(x[[i]],1,sd))) #Compute a sd for a small amount of noise
+        x[[i]][,(dif<1e-15)]<-x[[i]][,(dif<1e-15)] + noise_sd*rnorm(nrow(x[[i]])) #Add noise
       }
     }  
   }

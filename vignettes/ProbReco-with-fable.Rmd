@@ -16,7 +16,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `ProbReco` package assumes that base probabilistic forecasts are available.  This vignette describes how these can be obtained using the `fable` package.  Note that the `fable` package does currently allow for probabilistic forecast reconciliation, but only under Gaussianity and not using score optimisation.  These algorithms may be integrated into future releases of `fable`.
+The `ProbReco` package assumes that base probabilistic forecasts are available.  This vignette describes how these can be obtained using the `fable` package.  Note that the `fable` package does currently allow for probabilistic forecast reconciliation, but only under Gaussianity and not using score optimisation.
+
+This vignette considers the case of training reconciliation weights using a rolling window of probabilistic forecasts.  A simpler method is to simply use predicted values from a single window of data using the function `inscoreopt`.
 
 ## The data
 

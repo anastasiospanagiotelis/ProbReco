@@ -59,18 +59,13 @@ where $\tilde{\boldsymbol{y}}^{[q]}_{t+h|t}=\boldsymbol{S}(\boldsymbol{d}+\bolds
 
 A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{d}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
 
-## Setting up function inputs
+## Using `inscoreopt` function
 
-This section describes how to set up the inputs for the main functions in the `ProbReco` package.  These are easily created by the `purrr` package which can be loaded (together with the `ProbReco` package) using:
+The easiest function to use in the package is `inscoreopt`.  This only requires the data and predicted values.  The probabilistic forecasts are not true forecasts in the sense that they are obtained using in sample information.
 
-```{r loadpkgs}
-library(purrr)
-library(ProbReco)
-```
+### The S matrix
 
-### The `data` argument
-
-The loss function involves evaluation of a scoring rule over a training sample.  The `data` argument is a list where each list element is an $n$-vector corresponding to a realisation of the data.  Each element of the list corresponds to a training observation. Consider a 3-variable hierarchy where $y_{1,t}=y_{2,t}+y_{3,t}$.  An $\boldsymbol{S}$ matrix for this hierarchy is
+Consider a 3-variable hierarchy where $y_{1,t}=y_{2,t}+y_{3,t}$.  An $\boldsymbol{S}$ matrix for this hierarchy is
 
 $$\boldsymbol{S}=\begin{pmatrix}1&1\\1&0\\0&1\end{pmatrix}$$
 
@@ -81,11 +76,52 @@ S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 S
 ```
 
-Also, suppose
+### The data
+
+Suppose the data are given by
 
 $$\begin{pmatrix}y_{2,t}\\y_{3,t}\end{pmatrix}\sim N\left(\begin{pmatrix}1\\1\end{pmatrix},\begin{pmatrix}1&0\\0&1\end{pmatrix}\right)\,,$$
 
-for all $t$ then 10 realisations from the full hierarchy can be generated in R using
+ten obseravations of data from the full hierarchy can be simulated by
+
+```{r}
+y<-matrix(NA,3,10) #preallocate matrix
+for (t in 1:10){
+  y[,t]<-S%*%(c(1,1)+rnorm(2))
+}
+
+```
+
+### Using the function
+
+Suppose the predicted values are simply randomly generated from a uniform distribution.  The argument `yhat` must be a matrix of the same size as `y`
+
+```{r}
+yhat<-matrix(runif(30),3,10)
+```
+
+The reconciliation weights can be trained via
+
+```{r}
+library(ProbReco)
+out<-inscoreopt(y=y,yhat=yhat,S=S)
+out$d
+out$G
+```
+
+Different assumptions can be made about Gaussianity and dependence in the base forecasts using the arguments `basedep` and `basedist`
+
+## Setting up function inputs for `scoreopt`
+
+This section describes how to set up the inputs for the `scoreopt` functions in the `ProbReco` package.  These are more easily created by the `purrr` package which can be loaded using:
+
+```{r loadpkgs}
+library(purrr)
+```
+
+### The `data` argument
+
+In general, rather than using in-sample predictions, a rolling window can be set up where probabilstic forecasts and realisations are both used to train reconciliation weights.  The `data` argument is a list where each list element is an $n$-vector corresponding to a realisation of the data.  Each element of the list corresponds to a training observation. Assuming the same DGP as the previous example, this can be constructed as follows
 
 ```{r}
 data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
@@ -93,11 +129,11 @@ data[[1]]
 data[[5]]
 ```
 
-This form of storing data is unconvential but facilitates the use of `purrr` style functions that are used internally in the package.  
+In practice, an actual dataset will need to be converted into this form.  This form of storing data is unconvential but facilitates the use of `purrr` style functions that are used internally in the package.  
 
 ### The `prob` argument
 
-The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
+The base probabilistic forecast cann general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
 Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stores these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map` function.
 

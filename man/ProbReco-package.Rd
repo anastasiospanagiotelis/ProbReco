@@ -6,7 +6,7 @@
 \alias{ProbReco-package}
 \title{ProbReco: Score Optimal Probabilistic Forecast Reconciliation}
 \description{
-Training of reconciliation weights for probabilistic forecasts to optimise energy score using Stochastic Gradient Descent with automatically differentiated gradients.
+Training of reconciliation weights for probabilistic forecasts to optimise total score using Stochastic Gradient Descent with automatically differentiated gradients.
 }
 \details{
 This package carries out probabilistic forecast reconciliation via score 

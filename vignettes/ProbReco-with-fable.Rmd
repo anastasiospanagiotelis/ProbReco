@@ -47,7 +47,7 @@ N<-500
 
 #Make data windows
 
-data_windows<-map(1:(nrow(sim_hierarchy)-N+1),
+data_windows<-purrr::map(1:(nrow(sim_hierarchy)-N+1),
                   function(i){return(sim_hierarchy[i:(i+N-1),])})
 
 ```
@@ -72,13 +72,13 @@ A function for modelling and then obtaining the forecast mean and variance using
 
 forecast_window <- function(data_w){
   data_w%>%
-    pivot_longer(cols = -Time,
+    tidyr::pivot_longer(cols = -Time,
                names_to = 'var',
                values_to = 'value')%>%
     as_tsibble(index = 'Time',key='var')%>%
     model(arma11=ARIMA(value~1+pdq(1,0,1)+PDQ(0,0,0)))%>%
     forecast(h=1)%>%
-    arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))->f
+    dplyr::arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))->f
     mean<-map_dbl(f$.distribution,use_series,mean)
     sd<-map_dbl(f$.distribution,use_series,sd)
  return(list(mean=mean,sd=sd))
@@ -95,7 +95,7 @@ To fit the model and obtain the base forecast mean and variance for each window,
 ```{r}
 #Number of windows for training
 W<-10
-all_fc<-map(data_windows[1:W],forecast_window)
+all_fc<-purrr::map(data_windows[1:W],forecast_window)
 ```
 
 ## Setting up arguments for reconciliation
@@ -123,12 +123,12 @@ The following code obtains the realisations in the form required.
 obs_i<-function(i){
   sim_hierarchy%>%
   dplyr::filter(Time==i)%>%
-  pivot_longer(-Time,names_to = 'var')%>%
-  arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
-  pull(value)
+  tidyr::pivot_longer(-Time,names_to = 'var')%>%
+  dplyr::arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
+  dplyr::pull(value)
 }
 
-all_y<-map((N+1):(N+W),obs_i)
+all_y<-purrr::map((N+1):(N+W),obs_i)
 
 ```
 
@@ -154,7 +154,7 @@ make_genfunc<-function(input){
 The 'inner' function `f` generates fifty, vector-valued, one-step ahead forecasts from a independent Gaussian distributions with mean and standard deviation extracted from `input`.  The 'outer' function `make_genfunc` is required so that the entire list can be created using `map`
 
 ```{r}
-all_prob<-map(all_fc,make_genfunc)
+all_prob<-purrr::map(all_fc,make_genfunc)
 ```
 
 The object `all_prob` is in the form required.

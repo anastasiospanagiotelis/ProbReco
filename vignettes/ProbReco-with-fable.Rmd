@@ -122,7 +122,7 @@ The following code obtains the realisations in the form required.
 
 obs_i<-function(i){
   sim_hierarchy%>%
-  filter(Time==i)%>%
+  dplyr::filter(Time==i)%>%
   pivot_longer(-Time,names_to = 'var')%>%
   arrange(match(var,c("Tot","A","B","AA","AB","BA","BB")))%>%
   pull(value)

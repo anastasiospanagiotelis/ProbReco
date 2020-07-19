@@ -163,7 +163,7 @@ The object `all_prob` is in the form required.
 
 The total score for bottom up can be found using
 
-```{r}
+```{r, eval=F}
   G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
   es_bu<-total_score(all_y,all_prob,S,G_bu)
   es_bu
@@ -171,7 +171,7 @@ The total score for bottom up can be found using
 
 The optimal score can be found
 
-```{r}
+```{r,eval=F}
   opt<-scoreopt(all_y,all_prob,S)
   opt$d
   opt$G

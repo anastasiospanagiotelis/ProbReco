@@ -44,4 +44,8 @@ Useful links:
 }
 
 }
+\author{
+\strong{Maintainer}: Anastasios Panagiotelis \email{anastasios.panagiotelis@sydney.edu.au} (0000-0001-8678-7294)
+
+}
 \keyword{internal}

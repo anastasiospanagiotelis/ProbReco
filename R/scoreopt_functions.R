@@ -134,7 +134,7 @@ scoreopt.control<-function(eta = 0.001,
 
 #' @title Check inputs to function.
 #'
-#' @description This function checks that the inputs for \code{\link[ProbReco]{scoreopt()}} and \code{\link[ProbReco]{total_score()}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
+#' @description This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{total_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
 #'  
 #' @param data Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.
 #' @param prob List of functions to simulate from probabilistic forecasts.  Each list element corresponds to a period of training data. The output of each function should be a matrix.
@@ -371,8 +371,8 @@ scoreopt<-function(data,
 #' y<-S%*%(matrix(rnorm(20),2,10)+1)
 #' #Set point forecasts (chosen randomly from (0,1))
 #' yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
-#' #Find weights by SGD (will take a few seconds)
-#' out<-inscoreopt(y,yhat,S)
+#' #Find weights by SGD (Q set to 20 so that example runs quickly)
+#' out<-inscoreopt(y,yhat,S,Q=20)
 
 
 inscoreopt<-function(y,

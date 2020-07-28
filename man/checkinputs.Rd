@@ -18,5 +18,5 @@ checkinputs(data, prob, S, G, score = list(score = "energy", alpha = 1))
 \item{score}{Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).}
 }
 \description{
-This function checks that the inputs for \code{\link[ProbReco]{scoreopt()}} and \code{\link[ProbReco]{total_score()}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
+This function checks that the inputs for \code{\link[ProbReco]{scoreopt}} and \code{\link[ProbReco]{total_score}} are correctly setup.  It is called at the start of \code{\link[ProbReco]{scoreopt}}.
 }

@@ -19,11 +19,11 @@ knitr::opts_chunk$set(
 
 ## Background
 
-The `ProbReco` package carries out probabilistic forecast reconciliation via score optimisation.  This vignette describes how to set up the inputs to the main function `scoreopt` which finds reconciliation weights using Stochastic Gradient Descent.
+The `ProbReco` package carries out probabilistic forecast reconciliation via score optimisation.  This vignette describes how to set up the inputs to the main functions `inscoreopt()` and `scoreopt()` which find reconciliation weights using Stochastic Gradient Descent.
 
 ### Probabilistic Forecast Reconciliation
 
-Let $\boldsymbol{y}_t$ be a $n$-vector observed at time $t$ that is known to belong to an $m$-dimensional subspace of $\mathbb{R}^n$ denoted $\mathfrak{s}$ with $m<n$.  Suppose that a *base* probabilistic forecast for $\boldsymbol{y}_{t+h}$ at time $t$ is defined as 
+For a full treatment of probabilistic forecast reconciliation see [@wp]. Let $\boldsymbol{y}_t$ be a $n$-vector observed at time $t$ that is known to belong to an $m$-dimensional subspace of $\mathbb{R}^n$ denoted $\mathfrak{s}$ with $m<n$.  Suppose that a *base* probabilistic forecast for $\boldsymbol{y}_{t+h}$ at time $t$ is defined as 
 
 $$\hat{\nu}_{t+h|t}(\mathcal{A})=\textit{Pr}(\boldsymbol{y}_t\in\mathcal{A})\,,$$
 
@@ -57,11 +57,11 @@ where $\tilde{\boldsymbol{y}}^{[q]}_{t+h|t}=\boldsymbol{S}(\boldsymbol{d}+\bolds
 
 ### Optimisation
 
-A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{d}$ are found using algorithmic differentiation which is imlpemented using the Stan Math C++ header only library[see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
+A challenging aspect of optimising the loss function is its stochastic nature.  The technique used to maximise the loss function is *Stochastic Gradient Descent*.  The gradients with respect to $\boldsymbol{G}$ and $\boldsymbol{d}$ are found using algorithmic differentiation which is implemented using the Stan Math C++ header only library [see @stan].  The learning rates for each update are determined using the Adam method [see @adam].
 
-## Using `inscoreopt` function
+## Using the `inscoreopt()` function
 
-The easiest function to use in the package is `inscoreopt`.  This only requires the data and predicted values.  The probabilistic forecasts are not true forecasts in the sense that they are obtained using in sample information.
+The more straightforward function to use in the package is `inscoreopt()`.  This only requires the data and predicted values.  The probabilistic forecasts are not true forecasts in the sense that they are obtained using in sample information.
 
 ### The S matrix
 
@@ -82,7 +82,7 @@ Suppose the data are given by
 
 $$\begin{pmatrix}y_{2,t}\\y_{3,t}\end{pmatrix}\sim N\left(\begin{pmatrix}1\\1\end{pmatrix},\begin{pmatrix}1&0\\0&1\end{pmatrix}\right)\,,$$
 
-ten obseravations of data from the full hierarchy can be simulated by
+to demonstrate the functions, ten observations of data from the full hierarchy can be simulated by
 
 ```{r}
 y<-matrix(NA,3,10) #preallocate matrix
@@ -92,9 +92,9 @@ for (t in 1:10){
 
 ```
 
-### Using the function
+Naturally, in real applications the data will not need to be simulated.
 
-Suppose the predicted values are simply randomly generated from a uniform distribution.  The argument `yhat` must be a matrix of the same size as `y`
+For demonstration purposes, suppose the predicted values are simply randomly generated from a uniform distribution (in a real applications these will come from a model).  The argument `yhat` must be a matrix of the same size as `y`
 
 ```{r}
 yhat<-matrix(runif(30),3,10)
@@ -111,9 +111,9 @@ out$G
 
 Different assumptions can be made about Gaussianity and dependence in the base forecasts using the arguments `basedep` and `basedist`
 
-## Setting up function inputs for `scoreopt`
+## Setting up function inputs for `scoreopt()`
 
-This section describes how to set up the inputs for the `scoreopt` functions in the `ProbReco` package.  These are more easily created by the `purrr` package which can be loaded using:
+This section describes how to set up the inputs for the `scoreopt()` function.  These are more easily created by the `purrr` package which can be loaded using:
 
 ```{r loadpkgs}
 library(purrr)
@@ -121,7 +121,7 @@ library(purrr)
 
 ### The `data` argument
 
-In general, rather than using in-sample predictions, a rolling window can be set up where probabilstic forecasts and realisations are both used to train reconciliation weights.  The `data` argument is a list where each list element is an $n$-vector corresponding to a realisation of the data.  Each element of the list corresponds to a training observation. Assuming the same DGP as the previous example, this can be constructed as follows
+In general, rather than using in-sample predictions, a rolling window can be set up where probabilistic forecasts and realisations are both used to train reconciliation weights.  The `data` argument is a list where each list element is an $n$-vector corresponding to a realisation of the data.  Each element of the list corresponds to a training observation. Assuming the same DGP as the previous example, this can be constructed as follows
 
 ```{r}
 data<-map(1:10,function(i){S%*%(c(1,1)+rnorm(2))})
@@ -129,13 +129,13 @@ data[[1]]
 data[[5]]
 ```
 
-In practice, an actual dataset will need to be converted into this form.  This form of storing data is unconvential but facilitates the use of `purrr` style functions that are used internally in the package.  
+In practice, an actual dataset will need to be converted into this form.  This form of storing data is unconvential but allows for great flexibility in the way base probabilistic forecasts can be defined.  
 
 ### The `prob` argument
 
-The base probabilistic forecast cann general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
+The base probabilistic forecast in general will vary for each period of the training sample.  This information is also stored in a list.  Each list element corresponds to a training observation.  The list elements themselves are functions that simulate from the base probabilistic distribution.
 
-Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stores these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map` function.
+Suppose that the base probabilistic forecast is to simulate from a trivariate standard normal $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ for each training observation (in practice the probabilistic forecast will vary over the training observations).  First define a function that simulates 50 iterates from $N(\boldsymbol{0}_{3\times 1},\boldsymbol{I}_{3\times 3})$ and stores these in a matrix.  In practice a value larger than 50 should be used to estimate the energy score.  A list of these functions can be created using the `map()` function.
 
 ```{r}
 #Function
@@ -147,7 +147,7 @@ prob[[5]]
 
 ### The `Gvec` and `Ginit` argument
 
-The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{d}$.  The remaining elements are the elements of $\boldsymbol{G}$ vectorised (in column-major ordering).  A random value of $\boldsymbol{G}$ can be simulated as 
+The reconciliation parameters enter functions as a single argument.  The first $m$ elements are the elements of $\boldsymbol{d}$.  The remaining elements are the elements of $\boldsymbol{G}$ vectorised (in column-major ordering).  A random initial value can be simulated as 
 
 ```{r}
 Gvec<-runif(8)
@@ -156,7 +156,7 @@ Gvec
 
 ### Checking inputs with `checkinputs`
 
-To check that all inputs are correctly specified use the `checkinputs` function
+To check that all inputs are correctly specified use the `checkinputs()` function
 
 ```{r}
 checkinputs(data,prob,S,Gvec)
@@ -166,7 +166,7 @@ An error will be thrown if an input is incorrectly set up.
 
 ## The `total_score` and `scoreopt` functions
 
-The function `total_score` provides an estimate of the total score and its gradient.  The gradient is evaluated by algorithmic differentiation.
+The function `total_score()` provides an estimate of the total score and its gradient.  The gradient is evaluated by algorithmic differentiation.
 
 ```{r}
 out<-total_score(data,prob,S,Gvec)
@@ -184,7 +184,7 @@ out$grad
 out2$grad
 ```
 
-The function `scoreopt` maximises the loss function using stochastic gradient descent.
+The function `scoreopt()` maximises the loss function using stochastic gradient descent.
 
 ```{r}
 out<-scoreopt(data,prob,S)
@@ -203,7 +203,7 @@ Since everything is Gaussian, and the true mean of the base forecasts is $\bolds
 ```{r}
 S%*%out$d
 ```
-is close to the true mean of $(2,1,1)'$.  The variance covaraiance matrix is
+is close to the true mean of $(2,1,1)'$ (keeping in mind that the sample size is small).  The variance covariance matrix is
 
 ```{r}
 S%*%out$G%*%t(out$G)%*%t(S)

@@ -1,6 +1,6 @@
 #' @details
 #' This package carries out probabilistic forecast reconciliation via score 
-#' optimisation.  Given incoherent (base) probabilistic forecasts formed over a 
+#' optimisation using the method described by \insertCite{wp;textual}{ProbReco}.  Given incoherent (base) probabilistic forecasts formed over a 
 #' training data set, the function \code{\link[ProbReco]{scoreopt}} finds linear 
 #' reconciliation weights that optimise total 
 #' score \insertCite{scores}{ProbReco} over the training 

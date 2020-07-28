@@ -20,9 +20,9 @@ inscoreopt(y, yhat, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{control}{Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details}
 
-\item{basedep}{Should base distributions be assumed to be dependent (joint) or independent?  Default is joint.}
+\item{basedep}{Should base distributions be assumed to be dependent (joint) or independent?  Default is "joint", set to "independent" for independence.}
 
-\item{basedist}{Should base distributions be assumed to be Gaussian or bootstrapped?  Default is Gaussian.}
+\item{basedist}{Should base distributions be assumed to be Gaussian or bootstrapped?  Default is "gaussian" set to "bootstrap" for bootstrapping.}
 
 \item{Q}{Number of Monte Carlo iterations used to estimate score}
 

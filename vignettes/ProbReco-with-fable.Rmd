@@ -18,11 +18,11 @@ knitr::opts_chunk$set(
 
 The `ProbReco` package assumes that base probabilistic forecasts are available.  This vignette describes how these can be obtained using the `fable` package.  Note that the `fable` package does currently allow for probabilistic forecast reconciliation, but only under Gaussianity and not using score optimisation.
 
-This vignette considers the case of training reconciliation weights using a rolling window of probabilistic forecasts.  A simpler method is to simply use predicted values from a single window of data using the function `inscoreopt`.
+This vignette considers the case of training reconciliation weights using a rolling window of probabilistic forecasts.  A simpler method is to simply use predicted values from a single window of data using the function `inscoreopt()`.
 
 ## The data
 
-The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level.  
+The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level. For details see [@wp]. 
 
 ```{r,message=F}
 library(magrittr)
@@ -166,15 +166,13 @@ The total score for bottom up can be found using
 ```{r, eval=F}
   G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
   es_bu<-total_score(all_y,all_prob,S,G_bu)
-  es_bu
 ```
 
-The optimal score can be found
+The optimal score can now be found using
 
 ```{r,eval=F}
   opt<-scoreopt(all_y,all_prob,S)
-  opt$d
-  opt$G
-  opt$val
 ```
+
+## Reference
 

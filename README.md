@@ -10,15 +10,15 @@
 
 A package for probabilistic forecast reconciliation based on score optimisation via stochastic gradient methods.  The main functions are
 
-  - `scoreopt` for score optimisation based on a rolling window of out of sample forecasts.
-  - `scoreoptin` for score optimisation based on using residuals (easier interface).
+  - `scoreopt()` for score optimisation based on a rolling window of out of sample forecasts.
+  - `scoreoptin()` for score optimisation based on using residuals (easier interface).
 
 More information can be found in the package vignettes.
 
 ## Installation
 
 ``` r
-# The download ProbReco from CRAN:
+# To download `ProbReco` from CRAN:
 install.packages("ProbReco")
 
 ```
@@ -26,7 +26,7 @@ install.packages("ProbReco")
 ### Development version
 
 To get a bug fix or to use a feature from the development version, you
-can install the development version of ProbReco from GitHub.
+can install the development version of `ProbReco` from GitHub.
 
 ``` r
 # install.packages("devtools")

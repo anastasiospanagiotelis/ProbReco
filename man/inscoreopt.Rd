@@ -56,8 +56,8 @@ S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 y<-S\%*\%(matrix(rnorm(20),2,10)+1)
 #Set point forecasts (chosen randomly from (0,1))
 yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
-#Find weights by SGD (will take a few seconds)
-out<-inscoreopt(y,yhat,S)
+#Find weights by SGD (Q set to 20 so that example runs quickly)
+out<-inscoreopt(y,yhat,S,Q=20)
 }
 \seealso{
 Other ProbReco functions: \code{\link{scoreopt.control}},

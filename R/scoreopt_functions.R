@@ -29,7 +29,7 @@
 #' #Compute total score
 #' out<-total_score(data,prob,S,Gvec)
 
-total_score<-function(data,prob,S,Gvec,scorecode=1,alpha=1,matches=F){
+total_score<-function(data,prob,S,Gvec,scorecode=1,alpha=1,matches=FALSE){
 
 
   
@@ -209,13 +209,13 @@ checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
 #' @param control Tuning parameters for SGD. See \code{\link[ProbReco]{scoreopt.control}} for more details
 #' @param score Score to be used.  This must be a list with two elements: score for the scoring rule (currently only energy score and variogram score supported) and alpha, an additional parameter used in the score (e.g. power in energy score, default is 1).
 #' @param trace Flag to keep details of SGD.  Default is FALSE
-#' @param matches A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.
+#' @param matches A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to TRUE.  Otherwise set to FALSE (the default) to speed up code.
 #' @return Optimised reconciliation parameters.
 #' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix.}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=T).}
-#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=T).}
+#' \item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
 #' @examples
 #' #Use purr library to setup
 #' library(purrr)
@@ -235,8 +235,8 @@ scoreopt<-function(data,
                 Ginit = c(rep(0,ncol(S)),as.vector(solve(t(S)%*%S,t(S)))),
                 control=list(),
                 score=list(score="energy",alpha=1),
-                trace=F,
-                matches=F){
+                trace=FALSE,
+                matches=FALSE){
   
   #Get number of rows and columns for S
   nS<-nrow(S)
@@ -361,8 +361,8 @@ scoreopt<-function(data,
 #' \item{d}{Translation vector for reconciliation.}
 #' \item{G}{Reconciliation matrix (G).}
 #' \item{val}{The estimated optimal total score.}
-#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
-#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
+#' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
+#' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
 
 #' @examples
 #' #Define S matrix
@@ -384,7 +384,7 @@ inscoreopt<-function(y,
                    basedist='gaussian',
                    Q=500,
                    score=list(score="energy",alpha=1),
-                   trace=F){
+                   trace=FALSE){
   if (!(basedep%in%c('independent','joint'))){
     stop('basedep must be either independent or joint')
   }
@@ -437,7 +437,7 @@ inscoreopt<-function(y,
         fc_mean<-yhat[,i]
         out<-matrix(0,n,Q)
         for (j in 1:n){
-          ind<-sample(1:ncol(r),Q,replace=T)
+          ind<-sample(1:ncol(r),Q,replace=TRUE)
           out[j,]<-r[j,ind]+fc_mean[j]
         }
         return(out)
@@ -449,7 +449,7 @@ inscoreopt<-function(y,
     make_genfunc<-function(i){
       f<-function(){
         fc_mean<-yhat[,i]
-        ind<-sample(1:ncol(r),Q,replace=T)
+        ind<-sample(1:ncol(r),Q,replace=TRUE)
         out<-r[,ind]+fc_mean
         return(out)
       }

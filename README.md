@@ -1,4 +1,4 @@
-# ProbReco <a href='https://https://github.com/anastasiospanagiotelis/ProbReco'><img src='man/figures/ProbReco.png' align="right" height="138.5" /></a>
+# ProbReco <a href='https://github.com/anastasiospanagiotelis/ProbReco'><img src='man/figures/ProbReco.png' align="right" height="138.5" /></a>
 
 
 <!-- badges: start -->

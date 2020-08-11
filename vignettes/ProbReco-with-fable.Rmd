@@ -24,7 +24,7 @@ This vignette considers the case of training reconciliation weights using a roll
 
 The data `sim_hierarchy` refer to a simulated 7-variable hierarchy.  The bottom level series are all simulated from stationary ARMA models.  Noise terms are added so that the residual terms on the bottom levels have higher variance than the middle level residuals, which in turn have higher variance than the top level. For details see [@wp]. 
 
-```{r,message=F}
+```{r,message=FALSE}
 library(magrittr)
 library(dplyr)
 library(tidyr)
@@ -111,7 +111,7 @@ S<-matrix(c(1,1,1,1,
             1,0,0,0,
             0,1,0,0,
             0,0,1,0,
-            0,0,0,1),7,4,byrow = T)
+            0,0,0,1),7,4,byrow = TRUE)
 ```
 
 ### The realisations
@@ -163,14 +163,14 @@ The object `all_prob` is in the form required.
 
 The total score for bottom up can be found using
 
-```{r, eval=F}
+```{r, eval=FALSE}
   G_bu<-as.vector(rbind(matrix(0,4,4),diag(rep(1,4))))
   es_bu<-total_score(all_y,all_prob,S,G_bu)
 ```
 
 The optimal score can now be found using
 
-```{r,eval=F}
+```{r,eval=FALSE}
   opt<-scoreopt(all_y,all_prob,S)
 ```
 

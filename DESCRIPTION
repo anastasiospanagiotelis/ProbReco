@@ -7,12 +7,12 @@ Authors@R: c(person(given = "Anastasios",
              email = "anastasios.panagiotelis@sydney.edu.au",
              role = c("aut", "cre"),
              comment = c(ORCID = "0000-0001-8678-7294")))
-Description: Training of reconciliation weights for probabilistic forecasts to optimise total energy (or variogram) score using Stochastic Gradient Descent with automatically differentiated gradients. See Panagiotelis, Gamakumara, Athanasopoulos and Hyndman, (2020) <[https://www.monash.edu/business/ebs/research/publications/ebs/wp26-2020.pdf]https://www.monash.edu/business/ebs/research/publications/ebs/wp26-2020.pdf> for a description of the methods.
+Description: Training of reconciliation weights for probabilistic forecasts to optimise total energy (or variogram) score using Stochastic Gradient Descent with automatically differentiated gradients. See Panagiotelis, Gamakumara, Athanasopoulos and Hyndman, (2020) <https://www.monash.edu/business/ebs/research/publications/ebs/wp26-2020.pdf> for a description of the methods.
 License: GPL-3
 URL: https://github.com/anastasiospanagiotelis/ProbReco
 Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 1.0.2), purrr(>= 0.3.2), mvtnorm
-Suggests: Rdpack, knitr, rmarkdown, fable, dplyr,tidyr, magrittr
+Suggests: Rdpack, knitr, rmarkdown, fable, dplyr,tidyr, magrittr, stringi
 LinkingTo: Rcpp, RcppEigen, StanHeaders (>= 2.19.1), BH
 RdMacros: Rdpack
 RoxygenNote: 6.1.1.9000

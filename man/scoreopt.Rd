@@ -6,7 +6,7 @@
 \usage{
 scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list(), score = list(score = "energy",
-  alpha = 1), trace = F, matches = F)
+  alpha = 1), trace = FALSE, matches = FALSE)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -23,15 +23,15 @@ scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
 
 \item{trace}{Flag to keep details of SGD.  Default is FALSE}
 
-\item{matches}{A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to T.  Otherwise set to F (the default) to speed up code.}
+\item{matches}{A flag that checks for exact matches between samples from reconciled distribution.  This causes NaNs in the automatic differentiation.  For approaches that rely on bootstrapping set to TRUE.  Otherwise set to FALSE (the default) to speed up code.}
 }
 \value{
 Optimised reconciliation parameters.
 \item{d}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix.}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=T).}
-\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=T).}
+\item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
 }
 \description{
 Function to find a reconciliation matrix that optimises total score 

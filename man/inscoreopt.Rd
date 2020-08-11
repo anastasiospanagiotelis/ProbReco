@@ -7,7 +7,7 @@
 inscoreopt(y, yhat, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
   \%*\% S, t(S)))), control = list(), basedep = "joint",
   basedist = "gaussian", Q = 500, score = list(score = "energy",
-  alpha = 1), trace = F)
+  alpha = 1), trace = FALSE)
 }
 \arguments{
 \item{y}{Matrix of data, each column responds to an observation, each row corresponds to a variable.}
@@ -35,8 +35,8 @@ Optimised reconciliation parameters.
 \item{d}{Translation vector for reconciliation.}
 \item{G}{Reconciliation matrix (G).}
 \item{val}{The estimated optimal total score.}
-\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produces when trace=T).}
-\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produces when trace=T).}
+\item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
+\item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
 }
 \description{
 Function to find a reconciliation matrix that optimises total score 

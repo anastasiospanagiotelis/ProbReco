@@ -5,7 +5,7 @@
 \title{Total score (and gradient) for reconciled forecast}
 \usage{
 total_score(data, prob, S, Gvec, scorecode = 1, alpha = 1,
-  matches = F)
+  matches = FALSE)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}

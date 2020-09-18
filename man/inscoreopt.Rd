@@ -4,10 +4,18 @@
 \alias{inscoreopt}
 \title{In-Sample Score Optimisation by Stochastic Gradient Descent}
 \usage{
-inscoreopt(y, yhat, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
-  \%*\% S, t(S)))), control = list(), basedep = "joint",
-  basedist = "gaussian", Q = 500, score = list(score = "energy",
-  alpha = 1), trace = FALSE)
+inscoreopt(
+  y,
+  yhat,
+  S,
+  Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S) \%*\% S, t(S)))),
+  control = list(),
+  basedep = "joint",
+  basedist = "gaussian",
+  Q = 500,
+  score = list(score = "energy", alpha = 1),
+  trace = FALSE
+)
 }
 \arguments{
 \item{y}{Matrix of data, each column responds to an observation, each row corresponds to a variable.}
@@ -60,7 +68,9 @@ yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
 out<-inscoreopt(y,yhat,S,Q=20)
 }
 \seealso{
-Other ProbReco functions: \code{\link{scoreopt.control}},
-  \code{\link{scoreopt}}, \code{\link{total_score}}
+Other ProbReco functions: 
+\code{\link{scoreopt.control}()},
+\code{\link{scoreopt}()},
+\code{\link{total_score}()}
 }
 \concept{ProbReco functions}

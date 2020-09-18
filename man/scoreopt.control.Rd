@@ -4,8 +4,14 @@
 \alias{scoreopt.control}
 \title{Tuning parameters for score optimisation by Stochastic Gradient Descent}
 \usage{
-scoreopt.control(eta = 0.001, beta1 = 0.9, beta2 = 0.999,
-  maxIter = 500, tol = 1e-04, epsilon = 1e-08)
+scoreopt.control(
+  eta = 0.001,
+  beta1 = 0.9,
+  beta2 = 0.999,
+  maxIter = 500,
+  tol = 1e-04,
+  epsilon = 1e-08
+)
 }
 \arguments{
 \item{eta}{Learning rate. Deafult is 0.001}
@@ -34,7 +40,9 @@ scoreopt.control(maxIter=1000)
 \insertAllCited{}
 }
 \seealso{
-Other ProbReco functions: \code{\link{inscoreopt}},
-  \code{\link{scoreopt}}, \code{\link{total_score}}
+Other ProbReco functions: 
+\code{\link{inscoreopt}()},
+\code{\link{scoreopt}()},
+\code{\link{total_score}()}
 }
 \concept{ProbReco functions}

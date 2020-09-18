@@ -4,9 +4,16 @@
 \alias{scoreopt}
 \title{Score optimisation by Stochastic Gradient Descent}
 \usage{
-scoreopt(data, prob, S, Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S)
-  \%*\% S, t(S)))), control = list(), score = list(score = "energy",
-  alpha = 1), trace = FALSE, matches = FALSE)
+scoreopt(
+  data,
+  prob,
+  S,
+  Ginit = c(rep(0, ncol(S)), as.vector(solve(t(S) \%*\% S, t(S)))),
+  control = list(),
+  score = list(score = "energy", alpha = 1),
+  trace = FALSE,
+  matches = FALSE
+)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -51,7 +58,9 @@ prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 out<-scoreopt(data,prob,S)
 }
 \seealso{
-Other ProbReco functions: \code{\link{inscoreopt}},
-  \code{\link{scoreopt.control}}, \code{\link{total_score}}
+Other ProbReco functions: 
+\code{\link{inscoreopt}()},
+\code{\link{scoreopt.control}()},
+\code{\link{total_score}()}
 }
 \concept{ProbReco functions}

@@ -4,8 +4,10 @@
 \name{sim_hierarchy}
 \alias{sim_hierarchy}
 \title{Synthetic hierarchical data from stationary Gaussian ARMA models.}
-\format{A tibble with a time index Time and one column for each of the seven variables in 
-the hierarchy}
+\format{
+A tibble with a time index Time and one column for each of the seven variables in 
+the hierarchy
+}
 \usage{
 sim_hierarchy
 }

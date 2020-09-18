@@ -4,8 +4,7 @@
 \alias{total_score}
 \title{Total score (and gradient) for reconciled forecast}
 \usage{
-total_score(data, prob, S, Gvec, scorecode = 1, alpha = 1,
-  matches = FALSE)
+total_score(data, prob, S, Gvec, scorecode = 1, alpha = 1, matches = FALSE)
 }
 \arguments{
 \item{data}{Past data realisations as vectors in a list.  Each list element corresponds to a period of training data.}
@@ -46,7 +45,9 @@ prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 out<-total_score(data,prob,S,Gvec)
 }
 \seealso{
-Other ProbReco functions: \code{\link{inscoreopt}},
-  \code{\link{scoreopt.control}}, \code{\link{scoreopt}}
+Other ProbReco functions: 
+\code{\link{inscoreopt}()},
+\code{\link{scoreopt.control}()},
+\code{\link{scoreopt}()}
 }
 \concept{ProbReco functions}

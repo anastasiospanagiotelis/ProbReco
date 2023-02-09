@@ -20,3 +20,4 @@ LazyData: true
 VignetteBuilder: knitr
 Encoding: UTF-8
 BugReports: https://github.com/anastasiospanagiotelis/ProbReco/issues
+SystemRequirements: GNU make

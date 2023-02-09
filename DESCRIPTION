@@ -11,13 +11,14 @@ Description: Training of reconciliation weights for probabilistic forecasts to o
 License: GPL-3
 URL: https://github.com/anastasiospanagiotelis/ProbReco
 Depends: R (>= 3.5.0)
-Imports: Rcpp (>= 1.0.2), purrr(>= 0.3.2), mvtnorm, Rdpack
+Imports: Rcpp (>= 1.0.2), purrr(>= 0.3.2), mvtnorm, Rdpack, rstan
 Suggests: knitr, rmarkdown, fable, dplyr,tidyr, magrittr, stringi
 LinkingTo: Rcpp, RcppEigen, StanHeaders (>= 2.19.1), BH, RcppParallel
+NeedsCompilation: yes
 RdMacros: Rdpack
 RoxygenNote: 7.1.1
 LazyData: true
 VignetteBuilder: knitr
 Encoding: UTF-8
 BugReports: https://github.com/anastasiospanagiotelis/ProbReco/issues
-SystemRequirements: GNU make
+SystemRequirements: GNU make, C++14

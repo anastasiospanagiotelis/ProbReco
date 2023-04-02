@@ -1,4 +1,4 @@
-useDynLib(ProbReco)
+useDynLib(ProbReco, .registration = TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 importFrom(stats, rnorm, sd,cov)

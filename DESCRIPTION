@@ -1,7 +1,7 @@
 Package: ProbReco
 Type: Package
 Title: Score Optimal Probabilistic Forecast Reconciliation
-Version: 0.1.0.1
+Version: 0.1.2
 Authors@R: c(person(given = "Anastasios",
              family = "Panagiotelis",
              email = "anastasios.panagiotelis@sydney.edu.au",
@@ -15,7 +15,7 @@ Imports: Rcpp (>= 1.0.2), purrr(>= 0.3.2), mvtnorm, Rdpack
 Suggests: knitr, rmarkdown, fable, dplyr,tidyr, magrittr, stringi
 LinkingTo: Rcpp, RcppEigen, StanHeaders (>= 2.19.1), BH
 RdMacros: Rdpack
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 LazyData: true
 VignetteBuilder: knitr
 Encoding: UTF-8

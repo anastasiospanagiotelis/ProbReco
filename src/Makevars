@@ -4,7 +4,7 @@
 
 ## With R 3.1.0 or later, you can uncomment the following line to tell R to
 ## enable compilation with C++11 (or even C++14) where available
-CXX_STD = CXX14
+CXX_STD = CXX17
 
 
 VER=
@@ -23,4 +23,3 @@ PKG_CPPFLAGS += -I"../inst/include" -I"$(STANHEADERS_SRC)" -DBOOST_DISABLE_ASSER
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::CxxFlags()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::CxxFlags()")
 PKG_LIBS += $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::RcppParallelLibs()") $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::LdFlags()")
 
-CXX_STD = CXX14

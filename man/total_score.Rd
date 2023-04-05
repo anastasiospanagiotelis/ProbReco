@@ -27,7 +27,7 @@ Total score and gradient w.r.t (d,G).
 \item{value}{The estimated total score.}
 }
 \description{
-Function to find an estimate of the total energy score for a linearly reconciled 
+Function to find an estimate of the total energy score for a linearly reconciled
 probabilistic forecast.  Also finds the gradient by automatic differentiation.
 }
 \examples{
@@ -35,7 +35,7 @@ probabilistic forecast.  Also finds the gradient by automatic differentiation.
 library(purrr)
 #Define S matrix
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
-#Randomly set a value of reconciliation parameters 
+#Randomly set a value of reconciliation parameters
 Gvec<-as.matrix(runif(8))
 #Set data (only 10 training observations used for speed)
 data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})

@@ -39,13 +39,15 @@ Optimised reconciliation parameters.
 \item{val}{The estimated optimal total score.}
 \item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
 \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
+% donttest as elapsed time > 10s
 }
 \description{
-Function to find a reconciliation matrix that optimises total score 
+Function to find a reconciliation matrix that optimises total score
 using training data.  Stochastic gradient descent is used for optimisation
 with gradients found using automatic differentiation.
 }
 \examples{
+\donttest{
 #Use purr library to setup
 library(purrr)
 #Define S matrix
@@ -56,6 +58,7 @@ data<-map(1:10,function(i){S\%*\%(c(1,1)+rnorm(2))})
 prob<-map(1:10,function(i){f<-function(){matrix(rnorm(3*50),3,50)}})
 #Find weights by SGD (will take a few seconds)
 out<-scoreopt(data,prob,S)
+}
 }
 \seealso{
 Other ProbReco functions: 

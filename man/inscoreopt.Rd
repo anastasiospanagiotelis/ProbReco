@@ -45,19 +45,21 @@ Optimised reconciliation parameters.
 \item{val}{The estimated optimal total score.}
 \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
 \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
+% donttest as elapsed time > 10s
 }
 \description{
-Function to find a reconciliation matrix that optimises total score 
+Function to find a reconciliation matrix that optimises total score
 using training data.  Stochastic gradient descent is used for optimisation
-with gradients found using automatic differentiation. This function differs 
+with gradients found using automatic differentiation. This function differs
 from \code{\link[ProbReco]{scoreopt}} in two main ways.  First,
-formulation of base probabilistic forecasts is carried out from one of four 
+formulation of base probabilistic forecasts is carried out from one of four
 options depending on whether dependence and/or Gaussianity is assumed.  Second,
 the optimistation is based on in-sample predictions rather than a rolling window
-of out-of sample forecasts.  For more flexibility 
+of out-of sample forecasts.  For more flexibility
 use \code{\link[ProbReco]{scoreopt}}.
 }
 \examples{
+\donttest{
 #Define S matrix
 S<-matrix(c(1,1,1,0,0,1),3,2, byrow = TRUE)
 #Set data (only 10 training observations used for speed)
@@ -66,6 +68,7 @@ y<-S\%*\%(matrix(rnorm(20),2,10)+1)
 yhat<-matrix(runif(nrow(y)*ncol(y)),nrow(y),ncol(y))
 #Find weights by SGD (Q set to 20 so that example runs quickly)
 out<-inscoreopt(y,yhat,S,Q=20)
+}
 }
 \seealso{
 Other ProbReco functions: 

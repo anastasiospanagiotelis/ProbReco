@@ -28,8 +28,8 @@ scoreopt.control(
 }
 \description{
 Function to set tuning parameters for stochastic gradient descent used to
-find a reconciliation matrix that optimises total score.  The defaults are 
-those of \insertCite{adam;textual}{ProbReco} and more details on the tuning 
+find a reconciliation matrix that optimises total score.  The defaults are
+those of \insertCite{adam;textual}{ProbReco} and more details on the tuning
 parameters can be found therein.
 }
 \examples{

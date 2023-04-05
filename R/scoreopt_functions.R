@@ -216,7 +216,7 @@ checkinputs<-function(data,prob,S,G,score=list(score="energy",alpha=1)){
 #' \item{val}{The estimated optimal total score.}
 #' \item{Gvec_store}{A matrix of Gvec (\eqn{d} and \eqn{G} vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
 #' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
-#' donttest as elapsed time > 10s
+#' % donttest as elapsed time > 10s
 #' @examples
 #' \donttest{
 #' #Use purr library to setup
@@ -367,7 +367,7 @@ scoreopt<-function(data,
 #' \item{Gvec_store}{A matrix of Gvec (d and G vectorised) where each column corresponds to an iterate of SGD (only produced when trace=TRUE).}
 #' \item{val_store}{A vector where each element gives the value of the objective function for each iterate of SGD (only produced when trace=TRUE).}
 
-#' donttest as elapsed time > 10s
+#' % donttest as elapsed time > 10s
 #' @examples
 #' \donttest{
 #' #Define S matrix
